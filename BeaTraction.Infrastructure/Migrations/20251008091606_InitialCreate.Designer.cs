@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BeaTraction.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251008044955_InitialCreate")]
+    [Migration("20251008091606_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -65,13 +65,7 @@ namespace BeaTraction.Infrastructure.Migrations
                         .HasDefaultValue(1L)
                         .HasColumnName("row_version");
 
-                    b.Property<Guid>("ScheduleId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("schedule_id");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("ScheduleId");
 
                     b.ToTable("attractions", (string)null);
                 });
@@ -83,10 +77,6 @@ namespace BeaTraction.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<Guid>("AttractionId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("attraction_id");
 
                     b.Property<DateTime>("RegisteredAt")
                         .ValueGeneratedOnAdd()
@@ -101,17 +91,21 @@ namespace BeaTraction.Infrastructure.Migrations
                         .HasDefaultValue(1L)
                         .HasColumnName("row_version");
 
+                    b.Property<Guid>("ScheduleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("schedule_id");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AttractionId");
+                    b.HasIndex("ScheduleId");
 
-                    b.HasIndex("UserId", "AttractionId")
+                    b.HasIndex("UserId", "ScheduleId")
                         .IsUnique()
-                        .HasDatabaseName("uq_user_attraction");
+                        .HasDatabaseName("uq_user_schedule");
 
                     b.ToTable("registrations", (string)null);
                 });
@@ -123,6 +117,10 @@ namespace BeaTraction.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("AttractionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("attraction_id");
 
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("timestamp with time zone")
@@ -146,6 +144,8 @@ namespace BeaTraction.Infrastructure.Migrations
                         .HasColumnName("start_time");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AttractionId");
 
                     b.ToTable("schedules", (string)null);
                 });
@@ -205,22 +205,11 @@ namespace BeaTraction.Infrastructure.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("BeaTraction.Domain.Entities.Attraction", b =>
-                {
-                    b.HasOne("BeaTraction.Domain.Entities.Schedule", "Schedule")
-                        .WithMany("Attractions")
-                        .HasForeignKey("ScheduleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Schedule");
-                });
-
             modelBuilder.Entity("BeaTraction.Domain.Entities.Registration", b =>
                 {
-                    b.HasOne("BeaTraction.Domain.Entities.Attraction", "Attraction")
+                    b.HasOne("BeaTraction.Domain.Entities.Schedule", "Schedule")
                         .WithMany("Registrations")
-                        .HasForeignKey("AttractionId")
+                        .HasForeignKey("ScheduleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -230,19 +219,30 @@ namespace BeaTraction.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Attraction");
+                    b.Navigation("Schedule");
 
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("BeaTraction.Domain.Entities.Schedule", b =>
+                {
+                    b.HasOne("BeaTraction.Domain.Entities.Attraction", "Attraction")
+                        .WithMany("Schedules")
+                        .HasForeignKey("AttractionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Attraction");
+                });
+
             modelBuilder.Entity("BeaTraction.Domain.Entities.Attraction", b =>
                 {
-                    b.Navigation("Registrations");
+                    b.Navigation("Schedules");
                 });
 
             modelBuilder.Entity("BeaTraction.Domain.Entities.Schedule", b =>
                 {
-                    b.Navigation("Attractions");
+                    b.Navigation("Registrations");
                 });
 
             modelBuilder.Entity("BeaTraction.Domain.Entities.User", b =>

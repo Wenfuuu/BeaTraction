@@ -14,8 +14,8 @@ public class Registration
     public Guid UserId { get; set; }
     
     [Required]
-    [Column("attraction_id")]
-    public Guid AttractionId { get; set; }
+    [Column("schedule_id")]
+    public Guid ScheduleId { get; set; }
     
     [Required]
     [Column("registered_at")]
@@ -28,6 +28,6 @@ public class Registration
     [ForeignKey("UserId")]
     public User User { get; set; } = null!;
     
-    [ForeignKey("AttractionId")]
-    public Attraction Attraction { get; set; } = null!;
+    [ForeignKey("ScheduleId")]
+    public Schedule Schedule { get; set; } = null!;
 }

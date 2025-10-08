@@ -12,6 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Commands\Attractions\" />
+    <Folder Include="DTOs\Attractions\" />
     <Folder Include="Queries\Attractions\" />
   </ItemGroup>
 

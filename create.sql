@@ -8,17 +8,8 @@ CREATE TABLE users (
     row_version BIGINT NOT NULL DEFAULT 1
 );
 
-CREATE TABLE schedules (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(100) NOT NULL,
-    start_time TIMESTAMP NOT NULL,
-    end_time TIMESTAMP NOT NULL,
-    row_version BIGINT NOT NULL DEFAULT 1
-);
-
 CREATE TABLE attractions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    schedule_id UUID NOT NULL REFERENCES schedules(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     image_url TEXT,
@@ -27,16 +18,25 @@ CREATE TABLE attractions (
     row_version BIGINT NOT NULL DEFAULT 1
 );
 
+CREATE TABLE schedules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    attraction_id UUID NOT NULL REFERENCES attractions(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    start_time TIMESTAMP NOT NULL,
+    end_time TIMESTAMP NOT NULL,
+    row_version BIGINT NOT NULL DEFAULT 1
+);
+
 CREATE TABLE registrations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    attraction_id UUID NOT NULL REFERENCES attractions(id) ON DELETE CASCADE,
+    schedule_id UUID NOT NULL REFERENCES schedules(id) ON DELETE CASCADE,
     registered_at TIMESTAMP NOT NULL DEFAULT NOW(),
     row_version BIGINT NOT NULL DEFAULT 1
 );
 
 ALTER TABLE registrations
-ADD CONSTRAINT uq_user_attraction UNIQUE (user_id, attraction_id);
+ADD CONSTRAINT uq_user_schedule UNIQUE (user_id, schedule_id);
 
 CREATE OR REPLACE FUNCTION update_row_version()
 RETURNS TRIGGER AS $$

@@ -18,7 +18,7 @@ public class RegistrationRepository : IRegistrationRepository
     {
         return await _context.Registrations
             .Include(r => r.User)
-            .Include(r => r.Attraction)
+            .Include(r => r.Schedule)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
@@ -26,14 +26,14 @@ public class RegistrationRepository : IRegistrationRepository
     {
         return await _context.Registrations
             .Include(r => r.User)
-            .Include(r => r.Attraction)
+            .Include(r => r.Schedule)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<List<Registration>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _context.Registrations
-            .Include(r => r.Attraction)
+            .Include(r => r.Schedule)
             .Where(r => r.UserId == userId)
             .ToListAsync(cancellationToken);
     }
@@ -42,7 +42,8 @@ public class RegistrationRepository : IRegistrationRepository
     {
         return await _context.Registrations
             .Include(r => r.User)
-            .Where(r => r.AttractionId == attractionId)
+            .Include(r => r.Schedule)
+            .Where(r => r.Schedule.AttractionId == attractionId)
             .ToListAsync(cancellationToken);
     }
 
@@ -65,9 +66,9 @@ public class RegistrationRepository : IRegistrationRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<bool> UserAlreadyRegisteredAsync(Guid userId, Guid attractionId, CancellationToken cancellationToken = default)
+    public async Task<bool> UserAlreadyRegisteredAsync(Guid userId, Guid scheduleId, CancellationToken cancellationToken = default)
     {
         return await _context.Registrations
-            .AnyAsync(r => r.UserId == userId && r.AttractionId == attractionId, cancellationToken);
+            .AnyAsync(r => r.UserId == userId && r.ScheduleId == scheduleId, cancellationToken);
     }
 }

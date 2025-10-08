@@ -11,5 +11,5 @@ public interface IRegistrationRepository
     Task<Registration> AddAsync(Registration registration, CancellationToken cancellationToken = default);
     Task UpdateAsync(Registration registration, CancellationToken cancellationToken = default);
     Task DeleteAsync(Registration registration, CancellationToken cancellationToken = default);
-    Task<bool> UserAlreadyRegisteredAsync(Guid userId, Guid attractionId, CancellationToken cancellationToken = default);
+    Task<bool> UserAlreadyRegisteredAsync(Guid userId, Guid scheduleId, CancellationToken cancellationToken = default);
 }

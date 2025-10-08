@@ -10,10 +10,6 @@ public class Attraction
     public Guid Id { get; set; }
     
     [Required]
-    [Column("schedule_id")]
-    public Guid ScheduleId { get; set; }
-    
-    [Required]
     [MaxLength(100)]
     [Column("name")]
     public string Name { get; set; } = string.Empty;
@@ -37,8 +33,5 @@ public class Attraction
     [Column("row_version")]
     public long RowVersion { get; set; }
     
-    [ForeignKey("ScheduleId")]
-    public Schedule Schedule { get; set; } = null!;
-    
-    public ICollection<Registration> Registrations { get; set; } = new List<Registration>();
+    public ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
 }

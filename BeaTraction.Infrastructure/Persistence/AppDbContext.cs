@@ -40,10 +40,16 @@ public class AppDbContext : DbContext
             entity.ToTable("schedules");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.AttractionId).HasColumnName("attraction_id").IsRequired();
             entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(100).IsRequired();
             entity.Property(e => e.StartTime).HasColumnName("start_time").IsRequired();
             entity.Property(e => e.EndTime).HasColumnName("end_time").IsRequired();
             entity.Property(e => e.RowVersion).HasColumnName("row_version").IsRequired().HasDefaultValue(1L);
+            
+            entity.HasOne(e => e.Attraction)
+                .WithMany(a => a.Schedules)
+                .HasForeignKey(e => e.AttractionId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
         
         // attractions
@@ -52,18 +58,12 @@ public class AppDbContext : DbContext
             entity.ToTable("attractions");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
-            entity.Property(e => e.ScheduleId).HasColumnName("schedule_id").IsRequired();
             entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(100).IsRequired();
             entity.Property(e => e.Description).HasColumnName("description").IsRequired();
             entity.Property(e => e.ImageUrl).HasColumnName("image_url");
             entity.Property(e => e.Capacity).HasColumnName("capacity").IsRequired();
             entity.Property(e => e.CreatedAt).HasColumnName("created_at").IsRequired().HasDefaultValueSql("NOW()");
             entity.Property(e => e.RowVersion).HasColumnName("row_version").IsRequired().HasDefaultValue(1L);
-            
-            entity.HasOne(e => e.Schedule)
-                .WithMany(s => s.Attractions)
-                .HasForeignKey(e => e.ScheduleId)
-                .OnDelete(DeleteBehavior.Cascade);
         });
         
         // registrations
@@ -73,7 +73,7 @@ public class AppDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.UserId).HasColumnName("user_id").IsRequired();
-            entity.Property(e => e.AttractionId).HasColumnName("attraction_id").IsRequired();
+            entity.Property(e => e.ScheduleId).HasColumnName("schedule_id").IsRequired();
             entity.Property(e => e.RegisteredAt).HasColumnName("registered_at").IsRequired().HasDefaultValueSql("NOW()");
             entity.Property(e => e.RowVersion).HasColumnName("row_version").IsRequired().HasDefaultValue(1L);
             
@@ -82,14 +82,14 @@ public class AppDbContext : DbContext
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
             
-            entity.HasOne(e => e.Attraction)
-                .WithMany(a => a.Registrations)
-                .HasForeignKey(e => e.AttractionId)
+            entity.HasOne(e => e.Schedule)
+                .WithMany(s => s.Registrations)
+                .HasForeignKey(e => e.ScheduleId)
                 .OnDelete(DeleteBehavior.Cascade);
             
-            entity.HasIndex(e => new { e.UserId, e.AttractionId })
+            entity.HasIndex(e => new { e.UserId, e.ScheduleId })
                 .IsUnique()
-                .HasDatabaseName("uq_user_attraction");
+                .HasDatabaseName("uq_user_schedule");
         });
     }
 }
