@@ -15,7 +15,7 @@ public class UpdateAttractionHandler : IRequestHandler<UpdateAttractionCommand, 
 
     public async Task<AttractionDto> Handle(UpdateAttractionCommand request, CancellationToken cancellationToken)
     {
-        var attraction = await _attractionRepository.GetByIdAsync(request.Id);
+        var attraction = await _attractionRepository.GetByIdAsync(request.Id, cancellationToken);
         if (attraction == null)
         {
             throw new InvalidOperationException("Attraction not found");
@@ -26,7 +26,7 @@ public class UpdateAttractionHandler : IRequestHandler<UpdateAttractionCommand, 
         attraction.ImageUrl = request.ImageUrl;
         attraction.Capacity = request.Capacity;
 
-        await _attractionRepository.UpdateAsync(attraction);
+        await _attractionRepository.UpdateAsync(attraction, cancellationToken);
 
         return new AttractionDto
         {

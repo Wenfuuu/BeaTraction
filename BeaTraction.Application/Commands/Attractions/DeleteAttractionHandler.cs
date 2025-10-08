@@ -14,13 +14,13 @@ public class DeleteAttractionHandler : IRequestHandler<DeleteAttractionCommand, 
 
     public async Task<bool> Handle(DeleteAttractionCommand request, CancellationToken cancellationToken)
     {
-        var attraction = await _attractionRepository.GetByIdAsync(request.Id);
+        var attraction = await _attractionRepository.GetByIdAsync(request.Id, cancellationToken);
         if (attraction == null)
         {
             throw new InvalidOperationException("Attraction not found");
         }
 
-        await _attractionRepository.DeleteAsync(attraction);
+        await _attractionRepository.DeleteAsync(attraction, cancellationToken);
         return true;
     }
 }

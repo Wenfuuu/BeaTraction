@@ -15,7 +15,7 @@ public class GetAllAttractionsHandler : IRequestHandler<GetAllAttractionsQuery, 
 
     public async Task<List<AttractionDto>> Handle(GetAllAttractionsQuery request, CancellationToken cancellationToken)
     {
-        var attractions = await _attractionRepository.GetAllAsync();
+        var attractions = await _attractionRepository.GetAllAsync(cancellationToken);
 
         return attractions.Select(a => new AttractionDto
         {

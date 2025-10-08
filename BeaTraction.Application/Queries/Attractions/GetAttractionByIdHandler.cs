@@ -15,7 +15,7 @@ public class GetAttractionByIdHandler : IRequestHandler<GetAttractionByIdQuery, 
 
     public async Task<AttractionDto> Handle(GetAttractionByIdQuery request, CancellationToken cancellationToken)
     {
-        var attraction = await _attractionRepository.GetByIdAsync(request.Id);
+        var attraction = await _attractionRepository.GetByIdAsync(request.Id, cancellationToken);
         
         if (attraction == null)
         {

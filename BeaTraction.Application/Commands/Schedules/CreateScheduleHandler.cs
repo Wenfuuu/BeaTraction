@@ -20,7 +20,7 @@ public class CreateScheduleHandler : IRequestHandler<CreateScheduleCommand, Sche
 
     public async Task<ScheduleDto> Handle(CreateScheduleCommand request, CancellationToken cancellationToken)
     {
-        var attractionExists = await _attractionRepository.GetByIdAsync(request.AttractionId);
+        var attractionExists = await _attractionRepository.GetByIdAsync(request.AttractionId, cancellationToken);
         if (attractionExists == null)
         {
             throw new InvalidOperationException("Attraction not found");
@@ -35,7 +35,7 @@ public class CreateScheduleHandler : IRequestHandler<CreateScheduleCommand, Sche
             EndTime = request.EndTime
         };
 
-        await _scheduleRepository.AddAsync(schedule);
+        await _scheduleRepository.AddAsync(schedule, cancellationToken);
 
         return new ScheduleDto
         {

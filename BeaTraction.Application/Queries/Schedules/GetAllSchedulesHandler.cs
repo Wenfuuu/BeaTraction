@@ -15,7 +15,7 @@ public class GetAllSchedulesHandler : IRequestHandler<GetAllSchedulesQuery, List
 
     public async Task<List<ScheduleDto>> Handle(GetAllSchedulesQuery request, CancellationToken cancellationToken)
     {
-        var schedules = await _scheduleRepository.GetAllAsync();
+        var schedules = await _scheduleRepository.GetAllAsync(cancellationToken);
         
         return schedules.Select(s => new ScheduleDto
         {

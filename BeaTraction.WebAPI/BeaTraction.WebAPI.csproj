@@ -22,8 +22,4 @@
     <ProjectReference Include="..\BeaTraction.Infrastructure\BeaTraction.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
 </Project>

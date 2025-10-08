@@ -15,7 +15,7 @@ public class GetScheduleByIdHandler : IRequestHandler<GetScheduleByIdQuery, Sche
 
     public async Task<ScheduleDto> Handle(GetScheduleByIdQuery request, CancellationToken cancellationToken)
     {
-        var schedule = await _scheduleRepository.GetByIdAsync(request.Id);
+        var schedule = await _scheduleRepository.GetByIdAsync(request.Id, cancellationToken);
         if (schedule == null)
         {
             throw new InvalidOperationException("Schedule not found");

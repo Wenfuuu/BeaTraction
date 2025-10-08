@@ -26,7 +26,7 @@ public class CreateAttractionHandler : IRequestHandler<CreateAttractionCommand, 
             CreatedAt = DateTime.UtcNow
         };
 
-        await _attractionRepository.AddAsync(attraction);
+        await _attractionRepository.AddAsync(attraction, cancellationToken);
 
         return new AttractionDto
         {

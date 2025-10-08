@@ -14,13 +14,13 @@ public class DeleteScheduleHandler : IRequestHandler<DeleteScheduleCommand, bool
 
     public async Task<bool> Handle(DeleteScheduleCommand request, CancellationToken cancellationToken)
     {
-        var schedule = await _scheduleRepository.GetByIdAsync(request.Id);
+        var schedule = await _scheduleRepository.GetByIdAsync(request.Id, cancellationToken);
         if (schedule == null)
         {
             throw new InvalidOperationException("Schedule not found");
         }
 
-        await _scheduleRepository.DeleteAsync(schedule);
+        await _scheduleRepository.DeleteAsync(schedule, cancellationToken);
         return true;
     }
 }
