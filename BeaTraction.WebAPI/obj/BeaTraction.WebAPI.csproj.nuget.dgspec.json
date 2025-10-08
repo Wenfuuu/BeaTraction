@@ -4,14 +4,79 @@
     "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.WebAPI\\BeaTraction.WebAPI.csproj": {}
   },
   "projects": {
-    "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.WebAPI\\BeaTraction.WebAPI.csproj": {
+    "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Application\\BeaTraction.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.WebAPI\\BeaTraction.WebAPI.csproj",
-        "projectName": "BeaTraction.WebAPI",
-        "projectPath": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.WebAPI\\BeaTraction.WebAPI.csproj",
+        "projectUniqueName": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Application\\BeaTraction.Application.csproj",
+        "projectName": "BeaTraction.Application",
+        "projectPath": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Application\\BeaTraction.Application.csproj",
         "packagesPath": "C:\\Users\\bertr\\.nuget\\packages\\",
-        "outputPath": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.WebAPI\\obj\\",
+        "outputPath": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Application\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\bertr\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Domain\\BeaTraction.Domain.csproj": {
+                "projectPath": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Domain\\BeaTraction.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.400/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Domain\\BeaTraction.Domain.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Domain\\BeaTraction.Domain.csproj",
+        "projectName": "BeaTraction.Domain",
+        "projectPath": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Domain\\BeaTraction.Domain.csproj",
+        "packagesPath": "C:\\Users\\bertr\\.nuget\\packages\\",
+        "outputPath": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\bertr\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -45,10 +110,168 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.400/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Infrastructure\\BeaTraction.Infrastructure.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Infrastructure\\BeaTraction.Infrastructure.csproj",
+        "projectName": "BeaTraction.Infrastructure",
+        "projectPath": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Infrastructure\\BeaTraction.Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\bertr\\.nuget\\packages\\",
+        "outputPath": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Infrastructure\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\bertr\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Application\\BeaTraction.Application.csproj": {
+                "projectPath": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Application\\BeaTraction.Application.csproj"
+              },
+              "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Domain\\BeaTraction.Domain.csproj": {
+                "projectPath": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Domain\\BeaTraction.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.10, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.10, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[8.0.10, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.400/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.WebAPI\\BeaTraction.WebAPI.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.WebAPI\\BeaTraction.WebAPI.csproj",
+        "projectName": "BeaTraction.WebAPI",
+        "projectPath": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.WebAPI\\BeaTraction.WebAPI.csproj",
+        "packagesPath": "C:\\Users\\bertr\\.nuget\\packages\\",
+        "outputPath": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.WebAPI\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\bertr\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Application\\BeaTraction.Application.csproj": {
+                "projectPath": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Application\\BeaTraction.Application.csproj"
+              },
+              "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Infrastructure\\BeaTraction.Infrastructure.csproj": {
+                "projectPath": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Infrastructure\\BeaTraction.Infrastructure.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
           "dependencies": {
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[8.0.8, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.10, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
