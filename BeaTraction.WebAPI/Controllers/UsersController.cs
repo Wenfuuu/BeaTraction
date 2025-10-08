@@ -5,6 +5,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BeaTraction.WebAPI.Controllers;
 
@@ -120,5 +121,36 @@ public class UsersController : ControllerBase
         Response.Cookies.Delete("authToken");
         
         return Ok(new { message = "Logged out successfully" });
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<UserDto>> GetProfile()
+    {
+        try
+        {
+            var email = User.FindFirst(ClaimTypes.Email)?.Value 
+                ?? User.FindFirst("email")?.Value;
+
+            if (string.IsNullOrEmpty(email))
+            {
+                return Unauthorized(new { message = "Invalid token: email claim not found" });
+            }
+
+            var query = new GetUserProfileQuery(email);
+            var response = await _mediator.Send(query);
+            
+            return Ok(response);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 }
