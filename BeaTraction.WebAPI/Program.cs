@@ -1,7 +1,12 @@
 using BeaTraction.Application;
 using BeaTraction.Infrastructure;
 using BeaTraction.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
+using DotNetEnv;
+
+if (File.Exists(".env"))
+{
+    Env.Load();
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
