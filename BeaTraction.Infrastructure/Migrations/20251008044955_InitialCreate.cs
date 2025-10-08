@@ -33,6 +33,7 @@ namespace BeaTraction.Infrastructure.Migrations
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    password = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     role = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false, defaultValue: "user"),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
                     row_version = table.Column<long>(type: "bigint", nullable: false, defaultValue: 1L)
@@ -115,7 +116,6 @@ namespace BeaTraction.Infrastructure.Migrations
                 column: "email",
                 unique: true);
 
-            // Create row_version trigger function
             migrationBuilder.Sql(@"
                 CREATE OR REPLACE FUNCTION update_row_version()
                 RETURNS TRIGGER AS $$
@@ -126,7 +126,6 @@ namespace BeaTraction.Infrastructure.Migrations
                 $$ LANGUAGE plpgsql;
             ");
 
-            // Create triggers for each table
             migrationBuilder.Sql(@"
                 CREATE TRIGGER trg_users_rowversion
                 BEFORE UPDATE ON users
@@ -155,14 +154,12 @@ namespace BeaTraction.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Drop triggers first
             migrationBuilder.Sql("DROP TRIGGER IF EXISTS trg_registrations_rowversion ON registrations;");
             migrationBuilder.Sql("DROP TRIGGER IF EXISTS trg_attractions_rowversion ON attractions;");
             migrationBuilder.Sql("DROP TRIGGER IF EXISTS trg_schedules_rowversion ON schedules;");
             migrationBuilder.Sql("DROP TRIGGER IF EXISTS trg_users_rowversion ON users;");
             migrationBuilder.Sql("DROP FUNCTION IF EXISTS update_row_version();");
 
-            // Drop tables
             migrationBuilder.DropTable(
                 name: "registrations");
 

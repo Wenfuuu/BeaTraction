@@ -26,6 +26,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(100).IsRequired();
             entity.Property(e => e.Email).HasColumnName("email").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Password).HasColumnName("password").HasMaxLength(100).IsRequired();
             entity.Property(e => e.Role).HasColumnName("role").HasMaxLength(20).IsRequired().HasDefaultValue("user");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at").IsRequired().HasDefaultValueSql("NOW()");
             entity.Property(e => e.RowVersion).HasColumnName("row_version").IsRequired().HasDefaultValue(1L);

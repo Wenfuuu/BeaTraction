@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BeaTraction.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251008040003_InitialCreate")]
+    [Migration("20251008044955_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -175,6 +175,12 @@ namespace BeaTraction.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("name");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("password");
 
                     b.Property<string>("Role")
                         .IsRequired()
