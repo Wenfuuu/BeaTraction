@@ -1,6 +1,8 @@
+using BeaTraction.Application.Interfaces;
 using BeaTraction.Domain.Interfaces;
 using BeaTraction.Infrastructure.Persistence;
 using BeaTraction.Infrastructure.Repositories;
+using BeaTraction.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,28 +15,24 @@ public static class DependencyInjection
     {
         var connectionString = BuildConnectionString(configuration);
 
-        // Add DbContext
+        // db context
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(connectionString));
 
-        // Register Repositories
+        // repositories
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IScheduleRepository, ScheduleRepository>();
         services.AddScoped<IAttractionRepository, AttractionRepository>();
         services.AddScoped<IRegistrationRepository, RegistrationRepository>();
+
+        // services
+        services.AddScoped<IJwtService, JwtService>();
 
         return services;
     }
     
     private static string BuildConnectionString(IConfiguration configuration)
     {
-        var existingConnectionString = configuration.GetConnectionString("DefaultConnection");
-        
-        if (!string.IsNullOrEmpty(existingConnectionString))
-        {
-            return existingConnectionString;
-        }
-
         var host = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
         var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
         var database = Environment.GetEnvironmentVariable("DB_DATABASE") ?? "db_name";
