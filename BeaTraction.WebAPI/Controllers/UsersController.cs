@@ -1,11 +1,12 @@
-using BeaTraction.Application.Commands;
-using BeaTraction.Application.DTOs;
-using BeaTraction.Application.Queries;
+using BeaTraction.Application.Commands.Users;
+using BeaTraction.Application.DTOs.Users.Response;
+using BeaTraction.Application.Queries.Users;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using BeaTraction.Application.DTOs.Users.Request;
 
 namespace BeaTraction.WebAPI.Controllers;
 

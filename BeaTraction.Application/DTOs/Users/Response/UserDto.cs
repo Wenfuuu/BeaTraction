@@ -1,4 +1,4 @@
-namespace BeaTraction.Application.DTOs;
+namespace BeaTraction.Application.DTOs.Users.Response;
 
 public class UserDto
 {

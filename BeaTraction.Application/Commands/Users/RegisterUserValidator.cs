@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace BeaTraction.Application.Commands;
+namespace BeaTraction.Application.Commands.Users;
 
 public class RegisterUserValidator : AbstractValidator<RegisterUserCommand>
 {

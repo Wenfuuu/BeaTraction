@@ -1,8 +1,8 @@
-using BeaTraction.Application.DTOs;
+using BeaTraction.Application.DTOs.Users.Response;
 using BeaTraction.Domain.Interfaces;
 using MediatR;
 
-namespace BeaTraction.Application.Queries;
+namespace BeaTraction.Application.Queries.Users;
 
 public class GetAllUsersHandler : IRequestHandler<GetAllUsersQuery, List<UserDto>>
 {

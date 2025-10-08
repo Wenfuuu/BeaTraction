@@ -1,8 +1,8 @@
-using BeaTraction.Application.DTOs;
+using BeaTraction.Application.DTOs.Users.Response;
 using BeaTraction.Domain.Interfaces;
 using MediatR;
 
-namespace BeaTraction.Application.Queries;
+namespace BeaTraction.Application.Queries.Users;
 
 public class GetUserProfileHandler : IRequestHandler<GetUserProfileQuery, UserDto>
 {
@@ -15,7 +15,7 @@ public class GetUserProfileHandler : IRequestHandler<GetUserProfileQuery, UserDt
 
     public async Task<UserDto> Handle(GetUserProfileQuery request, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetByEmailAsync(request.Email);
+        var user = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
         
         if (user == null)
         {

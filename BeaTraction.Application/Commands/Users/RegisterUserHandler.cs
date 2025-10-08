@@ -1,9 +1,9 @@
-using BeaTraction.Application.DTOs;
+using BeaTraction.Application.DTOs.Users.Response;
 using BeaTraction.Domain.Entities;
 using BeaTraction.Domain.Interfaces;
 using MediatR;
 
-namespace BeaTraction.Application.Commands;
+namespace BeaTraction.Application.Commands.Users;
 
 public class RegisterUserHandler : IRequestHandler<RegisterUserCommand, UserDto>
 {

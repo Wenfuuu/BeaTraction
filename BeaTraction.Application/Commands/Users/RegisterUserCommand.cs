@@ -1,7 +1,7 @@
-using BeaTraction.Application.DTOs;
+using BeaTraction.Application.DTOs.Users.Response;
 using MediatR;
 
-namespace BeaTraction.Application.Commands;
+namespace BeaTraction.Application.Commands.Users;
 
 public record RegisterUserCommand(
     string Name,
