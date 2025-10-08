@@ -25,8 +25,8 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<List<UserDto>>> GetAllUsers()
     {
         var query = new GetAllUsersQuery();
-        var result = await _mediator.Send(query);
-        return Ok(result);
+        var response = await _mediator.Send(query);
+        return Ok(response);
     }
 
     [HttpPost("register")]
@@ -51,8 +51,8 @@ public class UsersController : ControllerBase
                 return BadRequest(new { errors = validationResult.Errors });
             }
 
-            var result = await _mediator.Send(command);
-            return CreatedAtAction(nameof(GetAllUsers), new { id = result.Id }, result);
+            var response = await _mediator.Send(command);
+            return CreatedAtAction(nameof(GetAllUsers), new { id = response.Id }, response);
         }
         catch (ValidationException ex)
         {
@@ -83,8 +83,25 @@ public class UsersController : ControllerBase
                 return BadRequest(new { errors = validationResult.Errors });
             }
 
-            var result = await _mediator.Send(command);
-            return Ok(result);
+            var response = await _mediator.Send(command);
+            
+            var expirationMinutes = int.TryParse(
+                Environment.GetEnvironmentVariable("JWT_EXPIRATION_MINUTES"), 
+                out var minutes) 
+                ? minutes 
+                : 60;
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddMinutes(expirationMinutes)
+            };
+            
+            Response.Cookies.Append("authToken", response.Token, cookieOptions);
+            
+            return Ok(response);
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -94,5 +111,14 @@ public class UsersController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    [HttpPost("logout")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public ActionResult Logout()
+    {
+        Response.Cookies.Delete("authToken");
+        
+        return Ok(new { message = "Logged out successfully" });
     }
 }
