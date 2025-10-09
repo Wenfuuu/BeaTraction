@@ -68,6 +68,20 @@ export const authService = {
     }
   },
 
+  async getMe() {
+    const response = await fetch(API_ENDPOINTS.auth.me, {
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      throw new Error('Not authenticated')
+    }
+
+    const user = await response.json()
+    localStorage.setItem('user', JSON.stringify(user))
+    return user
+  },
+
   getUser(): string | null {
     return localStorage.getItem('user')
   },

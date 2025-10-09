@@ -1,14 +1,17 @@
-import type { ReactNode } from 'react'
-import { Navigate } from 'react-router'
-import { useAuthContext } from '@/contexts/AuthContext'
+import type { ReactNode } from "react";
+import { Navigate } from "react-router";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 interface ProtectedRouteProps {
-  children: ReactNode
-  requiredRole?: 'admin' | 'user'
+  children: ReactNode;
+  requiredRole?: "admin" | "user";
 }
 
-export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { user, isLoading } = useAuthContext()
+export function ProtectedRoute({
+  children,
+  requiredRole,
+}: ProtectedRouteProps) {
+  const { user, isLoading } = useAuthContext();
 
   if (isLoading) {
     return (
@@ -18,17 +21,18 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!user) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/" replace />;
   }
 
   if (requiredRole && user.role !== requiredRole) {
-    const redirectPath = user.role === 'admin' ? '/admin/dashboard' : '/attractions'
-    return <Navigate to={redirectPath} replace />
+    const redirectPath =
+      user.role === "admin" ? "/admin/dashboard" : "/attractions";
+    return <Navigate to={redirectPath} replace />;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }

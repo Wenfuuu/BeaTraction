@@ -1,47 +1,41 @@
-import type { ReactNode } from 'react'
-import { Link, useNavigate } from 'react-router'
-import { Button } from '@/components/ui/button'
-import { useAuthContext } from '@/contexts/AuthContext'
-import {
-  LayoutDashboard,
-  Ticket,
-  Calendar,
-  LogOut,
-  Menu,
-} from 'lucide-react'
-import { useState } from 'react'
+import type { ReactNode } from "react";
+import { Link, useNavigate } from "react-router";
+import { Button } from "@/components/ui/button";
+import { useAuthContext } from "@/contexts/AuthContext";
+import { LayoutDashboard, Ticket, Calendar, LogOut, Menu } from "lucide-react";
+import { useState } from "react";
 
 interface AdminLayoutProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  const navigate = useNavigate()
-  const { logout } = useAuthContext()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const navigate = useNavigate();
+  const { logout } = useAuthContext();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
-    await logout()
-    navigate('/')
-  }
+    await logout();
+    navigate("/");
+  };
 
   const navItems = [
     {
-      to: '/admin/dashboard',
+      to: "/admin/dashboard",
       icon: LayoutDashboard,
-      label: 'Dashboard',
+      label: "Dashboard",
     },
     {
-      to: '/admin/attractions',
+      to: "/admin/attractions",
       icon: Ticket,
-      label: 'Attractions',
+      label: "Attractions",
     },
     {
-      to: '/admin/schedules',
+      to: "/admin/schedules",
       icon: Calendar,
-      label: 'Schedules',
+      label: "Schedules",
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -52,7 +46,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <Link to="/admin/dashboard" className="font-bold text-xl">
                 BeaTraction Admin
               </Link>
-              
+
               <nav className="hidden md:flex items-center gap-1">
                 {navItems.map((item) => (
                   <Link key={item.to} to={item.to}>
@@ -66,7 +60,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </div>
 
             <div className="hidden md:flex items-center gap-2">
-              <Button variant="outline" onClick={handleLogout} className="gap-2">
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="gap-2"
+              >
                 <LogOut className="h-4 w-4" />
                 Logout
               </Button>
@@ -86,8 +84,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <nav className="md:hidden py-4 border-t">
               <div className="flex flex-col gap-2">
                 {navItems.map((item) => (
-                  <Link key={item.to} to={item.to} onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start gap-2">
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start gap-2"
+                    >
                       <item.icon className="h-4 w-4" />
                       {item.label}
                     </Button>
@@ -109,5 +114,5 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
       <main>{children}</main>
     </div>
-  )
+  );
 }

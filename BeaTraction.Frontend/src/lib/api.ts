@@ -5,6 +5,7 @@ export const API_ENDPOINTS = {
     login: `${API_BASE_URL}/Users/login`,
     register: `${API_BASE_URL}/Users/register`,
     logout: `${API_BASE_URL}/Users/logout`,
+    me: `${API_BASE_URL}/Users/me`,
   },
   attractions: {
     getAll: `${API_BASE_URL}/Attractions`,
