@@ -8,28 +8,17 @@ namespace BeaTraction.Application.Commands.Schedules;
 public class CreateScheduleHandler : IRequestHandler<CreateScheduleCommand, ScheduleDto>
 {
     private readonly IScheduleRepository _scheduleRepository;
-    private readonly IAttractionRepository _attractionRepository;
 
-    public CreateScheduleHandler(
-        IScheduleRepository scheduleRepository,
-        IAttractionRepository attractionRepository)
+    public CreateScheduleHandler(IScheduleRepository scheduleRepository)
     {
         _scheduleRepository = scheduleRepository;
-        _attractionRepository = attractionRepository;
     }
 
     public async Task<ScheduleDto> Handle(CreateScheduleCommand request, CancellationToken cancellationToken)
     {
-        var attractionExists = await _attractionRepository.GetByIdAsync(request.AttractionId, cancellationToken);
-        if (attractionExists == null)
-        {
-            throw new InvalidOperationException("Attraction not found");
-        }
-
         var schedule = new Schedule
         {
             Id = Guid.NewGuid(),
-            AttractionId = request.AttractionId,
             Name = request.Name,
             StartTime = request.StartTime,
             EndTime = request.EndTime
@@ -40,7 +29,6 @@ public class CreateScheduleHandler : IRequestHandler<CreateScheduleCommand, Sche
         return new ScheduleDto
         {
             Id = schedule.Id,
-            AttractionId = schedule.AttractionId,
             Name = schedule.Name,
             StartTime = schedule.StartTime,
             EndTime = schedule.EndTime

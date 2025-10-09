@@ -4,7 +4,6 @@ using MediatR;
 namespace BeaTraction.Application.Commands.Schedules;
 
 public record CreateScheduleCommand(
-    Guid AttractionId,
     string Name,
     DateTime StartTime,
     DateTime EndTime

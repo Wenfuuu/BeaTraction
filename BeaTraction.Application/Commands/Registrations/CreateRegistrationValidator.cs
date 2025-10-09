@@ -9,8 +9,8 @@ public class CreateRegistrationValidator : AbstractValidator<CreateRegistrationC
         RuleFor(x => x.UserId)
             .NotEmpty().WithMessage("User ID is required");
 
-        RuleFor(x => x.ScheduleId)
-            .NotEmpty().WithMessage("Schedule ID is required");
+        RuleFor(x => x.ScheduleAttractionId)
+            .NotEmpty().WithMessage("ScheduleAttraction ID is required");
 
         RuleFor(x => x.RegisteredAt)
             .NotEmpty().WithMessage("Registered At is required");

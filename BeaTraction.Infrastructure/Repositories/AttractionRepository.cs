@@ -17,21 +17,21 @@ public class AttractionRepository : IAttractionRepository
     public async Task<Attraction?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.Attractions
-            .Include(a => a.Schedules)
+            .Include(a => a.ScheduleAttractions)
             .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
     }
 
     public async Task<List<Attraction>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Attractions
-            .Include(a => a.Schedules)
+            .Include(a => a.ScheduleAttractions)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<List<Attraction>> GetByScheduleIdAsync(Guid scheduleId, CancellationToken cancellationToken = default)
     {
         return await _context.Attractions
-            .Where(a => a.Schedules.Any(s => s.Id == scheduleId))
+            .Where(a => a.ScheduleAttractions.Any(sa => sa.ScheduleId == scheduleId))
             .ToListAsync(cancellationToken);
     }
 

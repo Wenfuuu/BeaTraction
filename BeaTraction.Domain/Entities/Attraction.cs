@@ -33,5 +33,5 @@ public class Attraction
     [Column("row_version")]
     public long RowVersion { get; set; }
     
-    public ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
+    public ICollection<ScheduleAttraction> ScheduleAttractions { get; set; } = new List<ScheduleAttraction>();
 }

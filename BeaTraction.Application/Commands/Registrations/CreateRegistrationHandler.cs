@@ -9,16 +9,16 @@ public class CreateRegistrationHandler : IRequestHandler<CreateRegistrationComma
 {
     private readonly IRegistrationRepository _registrationRepository;
     private readonly IUserRepository _userRepository;
-    private readonly IScheduleRepository _scheduleRepository;
+    private readonly IScheduleAttractionRepository _scheduleAttractionRepository;
 
     public CreateRegistrationHandler(
         IRegistrationRepository registrationRepository,
         IUserRepository userRepository,
-        IScheduleRepository scheduleRepository)
+        IScheduleAttractionRepository scheduleAttractionRepository)
     {
         _registrationRepository = registrationRepository;
         _userRepository = userRepository;
-        _scheduleRepository = scheduleRepository;
+        _scheduleAttractionRepository = scheduleAttractionRepository;
     }
 
     public async Task<RegistrationDto> Handle(CreateRegistrationCommand request, CancellationToken cancellationToken)
@@ -29,17 +29,17 @@ public class CreateRegistrationHandler : IRequestHandler<CreateRegistrationComma
             throw new InvalidOperationException("User not found");
         }
 
-        var scheduleExists = await _scheduleRepository.GetByIdAsync(request.ScheduleId, cancellationToken);
-        if (scheduleExists == null)
+        var scheduleAttractionExists = await _scheduleAttractionRepository.GetByIdAsync(request.ScheduleAttractionId);
+        if (scheduleAttractionExists == null)
         {
-            throw new InvalidOperationException("Schedule not found");
+            throw new InvalidOperationException("ScheduleAttraction not found");
         }
 
         var registration = new Registration
         {
             Id = Guid.NewGuid(),
             UserId = request.UserId,
-            ScheduleId = request.ScheduleId,
+            ScheduleAttractionId = request.ScheduleAttractionId,
             RegisteredAt = request.RegisteredAt
         };
 
@@ -49,7 +49,7 @@ public class CreateRegistrationHandler : IRequestHandler<CreateRegistrationComma
         {
             Id = registration.Id,
             UserId = registration.UserId,
-            ScheduleId = registration.ScheduleId,
+            ScheduleAttractionId = registration.ScheduleAttractionId,
             RegisteredAt = registration.RegisteredAt
         };
     }

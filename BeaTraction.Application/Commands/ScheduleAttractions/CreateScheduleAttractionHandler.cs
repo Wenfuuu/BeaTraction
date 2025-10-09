@@ -1,0 +1,79 @@
+using BeaTraction.Application.DTOs.Attractions.Response;
+using BeaTraction.Application.DTOs.ScheduleAttractions.Response;
+using BeaTraction.Application.DTOs.Schedules.Response;
+using BeaTraction.Domain.Entities;
+using BeaTraction.Domain.Interfaces;
+using MediatR;
+
+namespace BeaTraction.Application.Commands.ScheduleAttractions;
+
+public class CreateScheduleAttractionHandler : IRequestHandler<CreateScheduleAttractionCommand, ScheduleAttractionDto>
+{
+    private readonly IScheduleAttractionRepository _scheduleAttractionRepository;
+    private readonly IScheduleRepository _scheduleRepository;
+    private readonly IAttractionRepository _attractionRepository;
+
+    public CreateScheduleAttractionHandler(
+        IScheduleAttractionRepository scheduleAttractionRepository,
+        IScheduleRepository scheduleRepository,
+        IAttractionRepository attractionRepository)
+    {
+        _scheduleAttractionRepository = scheduleAttractionRepository;
+        _scheduleRepository = scheduleRepository;
+        _attractionRepository = attractionRepository;
+    }
+
+    public async Task<ScheduleAttractionDto> Handle(CreateScheduleAttractionCommand request, CancellationToken cancellationToken)
+    {
+        var schedule = await _scheduleRepository.GetByIdAsync(request.Data.ScheduleId, cancellationToken);
+        if (schedule == null)
+        {
+            throw new Exception($"Schedule with ID {request.Data.ScheduleId} not found");
+        }
+
+        var attraction = await _attractionRepository.GetByIdAsync(request.Data.AttractionId, cancellationToken);
+        if (attraction == null)
+        {
+            throw new Exception($"Attraction with ID {request.Data.AttractionId} not found");
+        }
+
+        var exists = await _scheduleAttractionRepository.ExistsAsync(request.Data.ScheduleId, request.Data.AttractionId, cancellationToken);
+        if (exists)
+        {
+            throw new Exception($"Schedule-Attraction combination already exists");
+        }
+
+        var scheduleAttraction = new ScheduleAttraction
+        {
+            ScheduleId = request.Data.ScheduleId,
+            AttractionId = request.Data.AttractionId,
+            RowVersion = 1
+        };
+
+        var created = await _scheduleAttractionRepository.CreateAsync(scheduleAttraction, cancellationToken);
+        
+        return new ScheduleAttractionDto
+        {
+            Id = created.Id,
+            ScheduleId = created.ScheduleId,
+            AttractionId = created.AttractionId,
+            RowVersion = created.RowVersion,
+            Schedule = new ScheduleDto
+            {
+                Id = created.Schedule.Id,
+                Name = created.Schedule.Name,
+                StartTime = created.Schedule.StartTime,
+                EndTime = created.Schedule.EndTime,
+            },
+            Attraction = new AttractionDto
+            {
+                Id = created.Attraction.Id,
+                Name = created.Attraction.Name,
+                Capacity = created.Attraction.Capacity,
+                CreatedAt = created.Attraction.CreatedAt,
+                Description = created.Attraction.Description,
+                ImageUrl = created.Attraction.ImageUrl,
+            }
+        };
+    }
+}

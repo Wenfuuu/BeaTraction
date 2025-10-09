@@ -8,16 +8,16 @@ public class UpdateRegistrationHandler : IRequestHandler<UpdateRegistrationComma
 {
     private readonly IRegistrationRepository _registrationRepository;
     private readonly IUserRepository _userRepository;
-    private readonly IScheduleRepository _scheduleRepository;
+    private readonly IScheduleAttractionRepository _scheduleAttractionRepository;
 
     public UpdateRegistrationHandler(
         IRegistrationRepository registrationRepository,
         IUserRepository userRepository,
-        IScheduleRepository scheduleRepository)
+        IScheduleAttractionRepository scheduleAttractionRepository)
     {
         _registrationRepository = registrationRepository;
         _userRepository = userRepository;
-        _scheduleRepository = scheduleRepository;
+        _scheduleAttractionRepository = scheduleAttractionRepository;
     }
 
     public async Task<RegistrationDto> Handle(UpdateRegistrationCommand request, CancellationToken cancellationToken)
@@ -34,14 +34,14 @@ public class UpdateRegistrationHandler : IRequestHandler<UpdateRegistrationComma
             throw new InvalidOperationException("User not found");
         }
 
-        var scheduleExists = await _scheduleRepository.GetByIdAsync(request.ScheduleId, cancellationToken);
-        if (scheduleExists == null)
+        var scheduleAttractionExists = await _scheduleAttractionRepository.GetByIdAsync(request.ScheduleAttractionId);
+        if (scheduleAttractionExists == null)
         {
-            throw new InvalidOperationException("Schedule not found");
+            throw new InvalidOperationException("ScheduleAttraction not found");
         }
 
         registration.UserId = request.UserId;
-        registration.ScheduleId = request.ScheduleId;
+        registration.ScheduleAttractionId = request.ScheduleAttractionId;
         registration.RegisteredAt = request.RegisteredAt;
 
         await _registrationRepository.UpdateAsync(registration, cancellationToken);
@@ -50,7 +50,7 @@ public class UpdateRegistrationHandler : IRequestHandler<UpdateRegistrationComma
         {
             Id = registration.Id,
             UserId = registration.UserId,
-            ScheduleId = registration.ScheduleId,
+            ScheduleAttractionId = registration.ScheduleAttractionId,
             RegisteredAt = registration.RegisteredAt
         };
     }

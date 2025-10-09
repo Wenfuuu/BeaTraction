@@ -6,6 +6,6 @@ namespace BeaTraction.Application.Commands.Registrations;
 public record UpdateRegistrationCommand(
     Guid Id,
     Guid UserId,
-    Guid ScheduleId,
+    Guid ScheduleAttractionId,
     DateTime RegisteredAt
 ) : IRequest<RegistrationDto>;

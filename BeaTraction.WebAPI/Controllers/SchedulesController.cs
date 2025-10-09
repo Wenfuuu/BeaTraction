@@ -57,7 +57,6 @@ public class SchedulesController : ControllerBase
         try
         {
             var command = new CreateScheduleCommand(
-                dto.AttractionId,
                 dto.Name,
                 dto.StartTime,
                 dto.EndTime
@@ -96,7 +95,6 @@ public class SchedulesController : ControllerBase
         {
             var command = new UpdateScheduleCommand(
                 id,
-                dto.AttractionId,
                 dto.Name,
                 dto.StartTime,
                 dto.EndTime

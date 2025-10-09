@@ -5,7 +5,6 @@ namespace BeaTraction.Application.Commands.Schedules;
 
 public record UpdateScheduleCommand(
     Guid Id,
-    Guid AttractionId,
     string Name,
     DateTime StartTime,
     DateTime EndTime

@@ -25,7 +25,7 @@ public class GetRegistrationByIdHandler : IRequestHandler<GetRegistrationByIdQue
         {
             Id = registration.Id,
             UserId = registration.UserId,
-            ScheduleId = registration.ScheduleId,
+            ScheduleAttractionId = registration.ScheduleAttractionId,
             RegisteredAt = registration.RegisteredAt
         };
     }

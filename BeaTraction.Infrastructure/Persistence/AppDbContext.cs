@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Schedule> Schedules { get; set; }
     public DbSet<Attraction> Attractions { get; set; }
+    public DbSet<ScheduleAttraction> ScheduleAttractions { get; set; }
     public DbSet<Registration> Registrations { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -40,16 +41,10 @@ public class AppDbContext : DbContext
             entity.ToTable("schedules");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
-            entity.Property(e => e.AttractionId).HasColumnName("attraction_id").IsRequired();
             entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(100).IsRequired();
             entity.Property(e => e.StartTime).HasColumnName("start_time").IsRequired();
             entity.Property(e => e.EndTime).HasColumnName("end_time").IsRequired();
             entity.Property(e => e.RowVersion).HasColumnName("row_version").IsRequired().HasDefaultValue(1L);
-            
-            entity.HasOne(e => e.Attraction)
-                .WithMany(a => a.Schedules)
-                .HasForeignKey(e => e.AttractionId)
-                .OnDelete(DeleteBehavior.Cascade);
         });
         
         // attractions
@@ -66,6 +61,31 @@ public class AppDbContext : DbContext
             entity.Property(e => e.RowVersion).HasColumnName("row_version").IsRequired().HasDefaultValue(1L);
         });
         
+        // schedule_attractions
+        modelBuilder.Entity<ScheduleAttraction>(entity =>
+        {
+            entity.ToTable("schedule_attractions");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.ScheduleId).HasColumnName("schedule_id").IsRequired();
+            entity.Property(e => e.AttractionId).HasColumnName("attraction_id").IsRequired();
+            entity.Property(e => e.RowVersion).HasColumnName("row_version").IsRequired().HasDefaultValue(1L);
+            
+            entity.HasOne(e => e.Schedule)
+                .WithMany(s => s.ScheduleAttractions)
+                .HasForeignKey(e => e.ScheduleId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.Attraction)
+                .WithMany(a => a.ScheduleAttractions)
+                .HasForeignKey(e => e.AttractionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasIndex(e => new { e.ScheduleId, e.AttractionId })
+                .IsUnique()
+                .HasDatabaseName("uq_schedule_attraction");
+        });
+        
         // registrations
         modelBuilder.Entity<Registration>(entity =>
         {
@@ -73,7 +93,7 @@ public class AppDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.UserId).HasColumnName("user_id").IsRequired();
-            entity.Property(e => e.ScheduleId).HasColumnName("schedule_id").IsRequired();
+            entity.Property(e => e.ScheduleAttractionId).HasColumnName("schedule_attraction_id").IsRequired();
             entity.Property(e => e.RegisteredAt).HasColumnName("registered_at").IsRequired().HasDefaultValueSql("NOW()");
             entity.Property(e => e.RowVersion).HasColumnName("row_version").IsRequired().HasDefaultValue(1L);
             
@@ -82,14 +102,14 @@ public class AppDbContext : DbContext
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
             
-            entity.HasOne(e => e.Schedule)
-                .WithMany(s => s.Registrations)
-                .HasForeignKey(e => e.ScheduleId)
+            entity.HasOne(e => e.ScheduleAttraction)
+                .WithMany(sa => sa.Registrations)
+                .HasForeignKey(e => e.ScheduleAttractionId)
                 .OnDelete(DeleteBehavior.Cascade);
             
-            entity.HasIndex(e => new { e.UserId, e.ScheduleId })
+            entity.HasIndex(e => new { e.UserId, e.ScheduleAttractionId })
                 .IsUnique()
-                .HasDatabaseName("uq_user_schedule");
+                .HasDatabaseName("uq_user_schedule_attraction");
         });
     }
 }

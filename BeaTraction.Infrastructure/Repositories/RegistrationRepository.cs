@@ -18,7 +18,7 @@ public class RegistrationRepository : IRegistrationRepository
     {
         return await _context.Registrations
             .Include(r => r.User)
-            .Include(r => r.Schedule)
+            .Include(r => r.ScheduleAttraction)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
@@ -26,14 +26,14 @@ public class RegistrationRepository : IRegistrationRepository
     {
         return await _context.Registrations
             .Include(r => r.User)
-            .Include(r => r.Schedule)
+            .Include(r => r.ScheduleAttraction)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<List<Registration>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _context.Registrations
-            .Include(r => r.Schedule)
+            .Include(r => r.ScheduleAttraction)
             .Where(r => r.UserId == userId)
             .ToListAsync(cancellationToken);
     }
@@ -42,8 +42,8 @@ public class RegistrationRepository : IRegistrationRepository
     {
         return await _context.Registrations
             .Include(r => r.User)
-            .Include(r => r.Schedule)
-            .Where(r => r.Schedule.AttractionId == attractionId)
+            .Include(r => r.ScheduleAttraction)
+            .Where(r => r.ScheduleAttraction.AttractionId == attractionId)
             .ToListAsync(cancellationToken);
     }
 
@@ -66,9 +66,9 @@ public class RegistrationRepository : IRegistrationRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<bool> UserAlreadyRegisteredAsync(Guid userId, Guid scheduleId, CancellationToken cancellationToken = default)
+    public async Task<bool> UserAlreadyRegisteredAsync(Guid userId, Guid scheduleAttractionId, CancellationToken cancellationToken = default)
     {
         return await _context.Registrations
-            .AnyAsync(r => r.UserId == userId && r.ScheduleId == scheduleId, cancellationToken);
+            .AnyAsync(r => r.UserId == userId && r.ScheduleAttractionId == scheduleAttractionId, cancellationToken);
     }
 }

@@ -24,7 +24,6 @@ public class GetScheduleByIdHandler : IRequestHandler<GetScheduleByIdQuery, Sche
         return new ScheduleDto
         {
             Id = schedule.Id,
-            AttractionId = schedule.AttractionId,
             Name = schedule.Name,
             StartTime = schedule.StartTime,
             EndTime = schedule.EndTime

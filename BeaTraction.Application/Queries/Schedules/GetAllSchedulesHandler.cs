@@ -20,7 +20,6 @@ public class GetAllSchedulesHandler : IRequestHandler<GetAllSchedulesQuery, List
         return schedules.Select(s => new ScheduleDto
         {
             Id = s.Id,
-            AttractionId = s.AttractionId,
             Name = s.Name,
             StartTime = s.StartTime,
             EndTime = s.EndTime

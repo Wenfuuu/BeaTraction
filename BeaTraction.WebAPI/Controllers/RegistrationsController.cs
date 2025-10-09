@@ -51,7 +51,7 @@ public class RegistrationsController : ControllerBase
         {
             var command = new CreateRegistrationCommand(
                 dto.UserId,
-                dto.ScheduleId,
+                dto.ScheduleAttractionId,
                 dto.RegisteredAt
             );
             
@@ -89,7 +89,7 @@ public class RegistrationsController : ControllerBase
             var command = new UpdateRegistrationCommand(
                 id,
                 dto.UserId,
-                dto.ScheduleId,
+                dto.ScheduleAttractionId,
                 dto.RegisteredAt
             );
 

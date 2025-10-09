@@ -20,23 +20,31 @@ CREATE TABLE attractions (
 
 CREATE TABLE schedules (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    attraction_id UUID NOT NULL REFERENCES attractions(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     start_time TIMESTAMP NOT NULL,
     end_time TIMESTAMP NOT NULL,
     row_version BIGINT NOT NULL DEFAULT 1
 );
 
+CREATE TABLE schedule_attractions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    schedule_id UUID NOT NULL REFERENCES schedules(id) ON DELETE CASCADE,
+    attraction_id UUID NOT NULL REFERENCES attractions(id) ON DELETE CASCADE,
+    row_version BIGINT NOT NULL DEFAULT 1,
+    CONSTRAINT uq_schedule_attraction UNIQUE (schedule_id, attraction_id)
+);
+
 CREATE TABLE registrations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    schedule_id UUID NOT NULL REFERENCES schedules(id) ON DELETE CASCADE,
+    schedule_attraction_id UUID NOT NULL REFERENCES schedule_attractions(id) ON DELETE CASCADE,
     registered_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    row_version BIGINT NOT NULL DEFAULT 1
+    row_version BIGINT NOT NULL DEFAULT 1,
+    CONSTRAINT uq_user_schedule_attraction UNIQUE (user_id, schedule_attraction_id)
 );
 
 ALTER TABLE registrations
-ADD CONSTRAINT uq_user_schedule UNIQUE (user_id, schedule_id);
+ADD CONSTRAINT uq_user_schedule UNIQUE (user_id, schedule_attraction_id);
 
 CREATE OR REPLACE FUNCTION update_row_version()
 RETURNS TRIGGER AS $$
@@ -57,6 +65,10 @@ FOR EACH ROW EXECUTE FUNCTION update_row_version();
 
 CREATE TRIGGER trg_attractions_rowversion
 BEFORE UPDATE ON attractions
+FOR EACH ROW EXECUTE FUNCTION update_row_version();
+
+CREATE TRIGGER trg_schedule_attractions_rowversion
+BEFORE UPDATE ON schedule_attractions
 FOR EACH ROW EXECUTE FUNCTION update_row_version();
 
 CREATE TRIGGER trg_registrations_rowversion

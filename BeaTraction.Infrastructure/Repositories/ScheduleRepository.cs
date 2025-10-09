@@ -17,16 +17,14 @@ public class ScheduleRepository : IScheduleRepository
     public async Task<Schedule?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.Schedules
-            .Include(s => s.Attraction)
-            .Include(s => s.Registrations)
+            .Include(s => s.ScheduleAttractions)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 
     public async Task<List<Schedule>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Schedules
-            .Include(s => s.Attraction)
-            .Include(s => s.Registrations)
+            .Include(s => s.ScheduleAttractions)
             .ToListAsync(cancellationToken);
     }
 
