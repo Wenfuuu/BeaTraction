@@ -19,8 +19,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type { Schedule, CreateScheduleRequest } from "@/types/schedule.types";
 import { Plus, Pencil, Trash2, Calendar, Clock } from "lucide-react";
+import { toast } from "@/lib/toast";
 
 export default function AdminSchedulesPage() {
   const [schedules, setSchedules] = useState<Schedule[]>([
@@ -49,9 +60,11 @@ export default function AdminSchedulesPage() {
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(
     null
   );
+  const [scheduleToDelete, setScheduleToDelete] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<CreateScheduleRequest>({
     name: "",
@@ -90,12 +103,22 @@ export default function AdminSchedulesPage() {
     resetForm();
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this schedule?")) {
-      console.log("Delete schedule:", id);
-      // TODO: API call
-      setSchedules(schedules.filter((s) => s.id !== id));
-    }
+  const handleDeleteClick = (id: string) => {
+    setScheduleToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!scheduleToDelete) return;
+    
+    console.log("Delete schedule:", scheduleToDelete);
+    // TODO: API call
+    setSchedules(schedules.filter((s) => s.id !== scheduleToDelete));
+    toast.success("Success!", {
+      description: "Schedule deleted successfully",
+    });
+    setIsDeleteDialogOpen(false);
+    setScheduleToDelete(null);
   };
 
   const resetForm = () => {
@@ -229,7 +252,7 @@ export default function AdminSchedulesPage() {
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => handleDelete(schedule.id)}
+                        onClick={() => handleDeleteClick(schedule.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -311,6 +334,27 @@ export default function AdminSchedulesPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the schedule
+                and all associated data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteConfirm}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
   );

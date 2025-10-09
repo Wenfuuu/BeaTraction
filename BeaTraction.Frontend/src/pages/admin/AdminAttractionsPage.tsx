@@ -21,6 +21,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type {
   Attraction,
   CreateAttractionRequest,
@@ -35,8 +45,10 @@ export default function AdminAttractionsPage() {
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedAttraction, setSelectedAttraction] =
     useState<Attraction | null>(null);
+  const [attractionToDelete, setAttractionToDelete] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<CreateAttractionRequest>({
     name: "",
@@ -83,13 +95,17 @@ export default function AdminAttractionsPage() {
     if (file) {
       const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
       if (!validTypes.includes(file.type)) {
-        alert("Please select a valid image file (JPEG, PNG, GIF, or WebP)");
+        toast.error("Invalid file type", {
+          description: "Please select a valid image file (JPEG, PNG, GIF, or WebP)",
+        });
         return;
       }
 
       const maxSize = 5 * 1024 * 1024;
       if (file.size > maxSize) {
-        alert("Image size must not exceed 5MB");
+        toast.error("File too large", {
+          description: "Image size must not exceed 5MB",
+        });
         return;
       }
 
@@ -164,12 +180,17 @@ export default function AdminAttractionsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this attraction?")) return;
+  const handleDeleteClick = (id: string) => {
+    setAttractionToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!attractionToDelete) return;
 
     try {
       setIsLoading(true);
-      await attractionService.delete(id);
+      await attractionService.delete(attractionToDelete);
       toast.success("Success!", {
         description: "Attraction deleted successfully",
       });
@@ -180,6 +201,8 @@ export default function AdminAttractionsPage() {
       });
     } finally {
       setIsLoading(false);
+      setIsDeleteDialogOpen(false);
+      setAttractionToDelete(null);
     }
   };
 
@@ -381,7 +404,7 @@ export default function AdminAttractionsPage() {
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={() => handleDelete(attraction.id)}
+                  onClick={() => handleDeleteClick(attraction.id)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -502,6 +525,28 @@ export default function AdminAttractionsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the attraction
+                and remove all associated data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteConfirm}
+                disabled={isLoading}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isLoading ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
   );
