@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import type { User } from '@/types/auth.types'
+import type { User, LoginCredentials } from '@/types/auth.types'
 import { authService } from '@/services/auth.service'
 
 export function useAuth() {
@@ -15,8 +15,10 @@ export function useAuth() {
     setIsLoading(false)
   }, [])
 
-  const login = (userData: User) => {
-    setUser(userData)
+  const login = async (credentials: LoginCredentials) => {
+    const response = await authService.login(credentials)
+    setUser(response.user)
+    return response
   }
 
   const logout = async () => {

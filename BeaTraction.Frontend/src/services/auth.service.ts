@@ -8,7 +8,7 @@ export const authService = {
       headers: {
         'Content-Type': 'application/json',
       },
-      credentials: 'include', // Include cookies in request
+      credentials: 'include', 
       body: JSON.stringify(credentials),
     })
 
@@ -19,7 +19,6 @@ export const authService = {
 
     const data = await response.json()
     
-    // Store user data in localStorage for persistence
     if (data.user) {
       localStorage.setItem('user', JSON.stringify(data.user))
     }
@@ -28,7 +27,6 @@ export const authService = {
   },
 
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
-    // Set default role to "user" if not provided
     const registrationData = {
       ...credentials,
       role: credentials.role || 'user',
@@ -39,7 +37,7 @@ export const authService = {
       headers: {
         'Content-Type': 'application/json',
       },
-      credentials: 'include', // Include cookies in request
+      credentials: 'include',
       body: JSON.stringify(registrationData),
     })
 
@@ -50,7 +48,6 @@ export const authService = {
 
     const data = await response.json()
     
-    // Store user data in localStorage for persistence
     if (data.user) {
       localStorage.setItem('user', JSON.stringify(data.user))
     }
@@ -59,10 +56,8 @@ export const authService = {
   },
 
   async logout() {
-    // Clear localStorage
     localStorage.removeItem('user')
     
-    // Optionally call logout endpoint to clear server-side session/cookie
     try {
       await fetch(API_ENDPOINTS.auth.logout, {
         method: 'POST',
@@ -78,7 +73,6 @@ export const authService = {
   },
 
   isAuthenticated(): boolean {
-    // Check if user exists in localStorage
     return !!this.getUser()
   },
 }

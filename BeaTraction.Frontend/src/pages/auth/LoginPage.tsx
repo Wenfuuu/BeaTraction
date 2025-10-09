@@ -6,11 +6,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from '@/lib/toast'
-import { authService } from '@/services/auth.service'
+import { useAuthContext } from '@/contexts/AuthContext'
 import type { LoginCredentials } from '@/types/auth.types'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const { login } = useAuthContext()
   const [formData, setFormData] = useState<LoginCredentials>({
     email: '',
     password: '',
@@ -44,16 +45,18 @@ export default function LoginPage() {
     setErrors({}) // clear previous errors
 
     try {
-      const response = await authService.login(formData)
+      const response = await login(formData)
       
       toast.success('Login successful!', {
         description: `Welcome back, ${response.user.name}!`,
       })
       
-      // redirect later
-      setTimeout(() => {
-        navigate('/dashboard')
-      }, 500)
+      // redirect based on role
+      if (response.user.role === 'admin') {
+        navigate('/admin/dashboard')
+      } else {
+        navigate('/attractions')
+      }
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred. Please try again.'
