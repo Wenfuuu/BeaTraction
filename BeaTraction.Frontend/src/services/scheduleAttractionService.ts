@@ -1,5 +1,9 @@
 import { API_ENDPOINTS } from "@/lib/api";
-import type { ScheduleAttraction, ScheduleAttractionWithDetails, CreateScheduleAttractionRequest } from "@/types/schedule-attraction.types";
+import type {
+  ScheduleAttraction,
+  ScheduleAttractionWithDetails,
+  CreateScheduleAttractionRequest,
+} from "@/types/schedule-attraction.types";
 
 export const scheduleAttractionService = {
   async getAll(): Promise<ScheduleAttractionWithDetails[]> {
@@ -15,9 +19,12 @@ export const scheduleAttractionService = {
   },
 
   async getById(id: string): Promise<ScheduleAttractionWithDetails> {
-    const response = await fetch(API_ENDPOINTS.scheduleAttractions.getById(id), {
-      credentials: "include",
-    });
+    const response = await fetch(
+      API_ENDPOINTS.scheduleAttractions.getById(id),
+      {
+        credentials: "include",
+      }
+    );
 
     if (!response.ok) {
       throw new Error("Failed to fetch schedule attraction");
@@ -26,10 +33,15 @@ export const scheduleAttractionService = {
     return response.json();
   },
 
-  async getByScheduleId(scheduleId: string): Promise<ScheduleAttractionWithDetails[]> {
-    const response = await fetch(API_ENDPOINTS.scheduleAttractions.getByScheduleId(scheduleId), {
-      credentials: "include",
-    });
+  async getByScheduleId(
+    scheduleId: string
+  ): Promise<ScheduleAttractionWithDetails[]> {
+    const response = await fetch(
+      API_ENDPOINTS.scheduleAttractions.getByScheduleId(scheduleId),
+      {
+        credentials: "include",
+      }
+    );
 
     if (!response.ok) {
       throw new Error("Failed to fetch attractions for schedule");
@@ -38,10 +50,15 @@ export const scheduleAttractionService = {
     return response.json();
   },
 
-  async getByAttractionId(attractionId: string): Promise<ScheduleAttractionWithDetails[]> {
-    const response = await fetch(API_ENDPOINTS.scheduleAttractions.getByAttractionId(attractionId), {
-      credentials: "include",
-    });
+  async getByAttractionId(
+    attractionId: string
+  ): Promise<ScheduleAttractionWithDetails[]> {
+    const response = await fetch(
+      API_ENDPOINTS.scheduleAttractions.getByAttractionId(attractionId),
+      {
+        credentials: "include",
+      }
+    );
 
     if (!response.ok) {
       throw new Error("Failed to fetch schedules for attraction");
@@ -50,7 +67,9 @@ export const scheduleAttractionService = {
     return response.json();
   },
 
-  async create(data: CreateScheduleAttractionRequest): Promise<ScheduleAttraction> {
+  async create(
+    data: CreateScheduleAttractionRequest
+  ): Promise<ScheduleAttraction> {
     const response = await fetch(API_ENDPOINTS.scheduleAttractions.create, {
       method: "POST",
       credentials: "include",
@@ -61,7 +80,9 @@ export const scheduleAttractionService = {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: "Failed to add attraction to schedule" }));
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to add attraction to schedule" }));
       throw new Error(error.message || "Failed to add attraction to schedule");
     }
 
@@ -75,8 +96,14 @@ export const scheduleAttractionService = {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: "Failed to remove attraction from schedule" }));
-      throw new Error(error.message || "Failed to remove attraction from schedule");
+      const error = await response
+        .json()
+        .catch(() => ({
+          message: "Failed to remove attraction from schedule",
+        }));
+      throw new Error(
+        error.message || "Failed to remove attraction from schedule"
+      );
     }
   },
 };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -10,66 +10,29 @@ import { Progress } from "@/components/ui/progress";
 import AdminLayout from "@/components/layouts/AdminLayout";
 import type { AttractionRegistrationStats } from "@/types/registration.types";
 import { Users, TrendingUp, Calendar, AlertCircle } from "lucide-react";
+import { dashboardService } from "@/services/dashboardService";
+import { toast } from "@/lib/toast";
 
 export default function AdminDashboardPage() {
-  const [stats] = useState<AttractionRegistrationStats[]>([
-    {
-      attractionId: "1",
-      attractionName: "Roller Coaster",
-      capacity: 50,
-      totalRegistrations: 35,
-      scheduleAttractions: [
-        {
-          scheduleAttractionId: "sa-1",
-          scheduleId: "1",
-          scheduleName: "Morning Session",
-          startTime: "2025-10-10T09:00:00",
-          endTime: "2025-10-10T12:00:00",
-          registrationCount: 20,
-        },
-        {
-          scheduleAttractionId: "sa-2",
-          scheduleId: "2",
-          scheduleName: "Afternoon Session",
-          startTime: "2025-10-10T13:00:00",
-          endTime: "2025-10-10T16:00:00",
-          registrationCount: 15,
-        },
-      ],
-    },
-    {
-      attractionId: "2",
-      attractionName: "Ferris Wheel",
-      capacity: 40,
-      totalRegistrations: 38,
-      scheduleAttractions: [
-        {
-          scheduleAttractionId: "sa-3",
-          scheduleId: "3",
-          scheduleName: "Evening Session",
-          startTime: "2025-10-10T17:00:00",
-          endTime: "2025-10-10T20:00:00",
-          registrationCount: 38,
-        },
-      ],
-    },
-    {
-      attractionId: "3",
-      attractionName: "Haunted House",
-      capacity: 30,
-      totalRegistrations: 10,
-      scheduleAttractions: [
-        {
-          scheduleAttractionId: "sa-4",
-          scheduleId: "4",
-          scheduleName: "Night Session",
-          startTime: "2025-10-10T19:00:00",
-          endTime: "2025-10-10T22:00:00",
-          registrationCount: 10,
-        },
-      ],
-    },
-  ]);
+  const [stats, setStats] = useState<AttractionRegistrationStats[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        setIsLoading(true);
+        const data = await dashboardService.getAttractionStats();
+        setStats(data);
+      } catch (error) {
+        toast.error("Failed to load dashboard data", {
+          description: error instanceof Error ? error.message : "An error occurred",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadStats();
+  }, []);
 
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString("en-US", {
@@ -86,12 +49,6 @@ export default function AdminDashboardPage() {
     if (percentage >= 90) return "text-red-600";
     if (percentage >= 70) return "text-yellow-600";
     return "text-green-600";
-  };
-
-  const getProgressColor = (percentage: number) => {
-    if (percentage >= 90) return "bg-red-500";
-    if (percentage >= 70) return "bg-yellow-500";
-    return "bg-green-500";
   };
 
   const totalCapacity = stats.reduce((sum, stat) => sum + stat.capacity, 0);
@@ -114,7 +71,23 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <p className="text-gray-500">Loading dashboard data...</p>
+          </div>
+        ) : stats.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <AlertCircle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No data available</h3>
+              <p className="text-gray-600 mb-4">
+                Add some attractions and schedules to see statistics
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -278,6 +251,8 @@ export default function AdminDashboardPage() {
             );
           })}
         </div>
+          </>
+        )}
       </div>
     </AdminLayout>
   );

@@ -25,8 +25,10 @@ export const API_ENDPOINTS = {
   scheduleAttractions: {
     getAll: `${API_BASE_URL}/ScheduleAttractions`,
     getById: (id: string) => `${API_BASE_URL}/ScheduleAttractions/${id}`,
-    getByScheduleId: (scheduleId: string) => `${API_BASE_URL}/ScheduleAttractions/schedule/${scheduleId}`,
-    getByAttractionId: (attractionId: string) => `${API_BASE_URL}/ScheduleAttractions/attraction/${attractionId}`,
+    getByScheduleId: (scheduleId: string) =>
+      `${API_BASE_URL}/ScheduleAttractions/schedule/${scheduleId}`,
+    getByAttractionId: (attractionId: string) =>
+      `${API_BASE_URL}/ScheduleAttractions/attraction/${attractionId}`,
     create: `${API_BASE_URL}/ScheduleAttractions`,
     delete: (id: string) => `${API_BASE_URL}/ScheduleAttractions/${id}`,
   },
