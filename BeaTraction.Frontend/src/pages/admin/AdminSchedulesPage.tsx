@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,31 +32,11 @@ import {
 import type { Schedule, CreateScheduleRequest } from "@/types/schedule.types";
 import { Plus, Pencil, Trash2, Calendar, Clock } from "lucide-react";
 import { toast } from "@/lib/toast";
+import { scheduleService } from "@/services/scheduleService";
 
 export default function AdminSchedulesPage() {
-  const [schedules, setSchedules] = useState<Schedule[]>([
-    {
-      id: "1",
-      name: "Morning Session",
-      startTime: "2025-10-10T09:00:00",
-      endTime: "2025-10-10T12:00:00",
-      rowVersion: 1,
-    },
-    {
-      id: "2",
-      name: "Afternoon Session",
-      startTime: "2025-10-10T13:00:00",
-      endTime: "2025-10-10T16:00:00",
-      rowVersion: 1,
-    },
-    {
-      id: "3",
-      name: "Evening Session",
-      startTime: "2025-10-10T17:00:00",
-      endTime: "2025-10-10T20:00:00",
-      rowVersion: 1,
-    },
-  ]);
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -72,6 +52,37 @@ export default function AdminSchedulesPage() {
     endTime: "",
   });
 
+  useEffect(() => {
+    const loadSchedules = async () => {
+      try {
+        setIsLoading(true);
+        const data = await scheduleService.getAll();
+        setSchedules(data);
+      } catch (error) {
+        toast.error("Failed to load schedules", {
+          description: error instanceof Error ? error.message : "An error occurred",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadSchedules();
+  }, []);
+
+  const fetchSchedules = async () => {
+    try {
+      setIsLoading(true);
+      const data = await scheduleService.getAll();
+      setSchedules(data);
+    } catch (error) {
+      toast.error("Failed to load schedules", {
+        description: error instanceof Error ? error.message : "An error occurred",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString("en-US", {
       dateStyle: "medium",
@@ -79,11 +90,23 @@ export default function AdminSchedulesPage() {
     });
   };
 
-  const handleCreate = () => {
-    console.log("Create schedule:", formData);
-    // TODO: API call
-    setIsCreateDialogOpen(false);
-    resetForm();
+  const handleCreate = async () => {
+    try {
+      setIsLoading(true);
+      await scheduleService.create(formData);
+      toast.success("Success!", {
+        description: "Schedule created successfully",
+      });
+      setIsCreateDialogOpen(false);
+      resetForm();
+      await fetchSchedules();
+    } catch (error) {
+      toast.error("Failed to create schedule", {
+        description: error instanceof Error ? error.message : "An error occurred",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEdit = (schedule: Schedule) => {
@@ -96,11 +119,29 @@ export default function AdminSchedulesPage() {
     setIsEditDialogOpen(true);
   };
 
-  const handleUpdate = () => {
-    console.log("Update schedule:", selectedSchedule?.id, formData);
-    // TODO: API call
-    setIsEditDialogOpen(false);
-    resetForm();
+  const handleUpdate = async () => {
+    if (!selectedSchedule) return;
+
+    try {
+      setIsLoading(true);
+      await scheduleService.update(selectedSchedule.id, {
+        ...formData,
+        id: selectedSchedule.id,
+        rowVersion: selectedSchedule.rowVersion,
+      });
+      toast.success("Success!", {
+        description: "Schedule updated successfully",
+      });
+      setIsEditDialogOpen(false);
+      resetForm();
+      await fetchSchedules();
+    } catch (error) {
+      toast.error("Failed to update schedule", {
+        description: error instanceof Error ? error.message : "An error occurred",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDeleteClick = (id: string) => {
@@ -108,17 +149,25 @@ export default function AdminSchedulesPage() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!scheduleToDelete) return;
     
-    console.log("Delete schedule:", scheduleToDelete);
-    // TODO: API call
-    setSchedules(schedules.filter((s) => s.id !== scheduleToDelete));
-    toast.success("Success!", {
-      description: "Schedule deleted successfully",
-    });
-    setIsDeleteDialogOpen(false);
-    setScheduleToDelete(null);
+    try {
+      setIsLoading(true);
+      await scheduleService.delete(scheduleToDelete);
+      toast.success("Success!", {
+        description: "Schedule deleted successfully",
+      });
+      await fetchSchedules();
+    } catch (error) {
+      toast.error("Failed to delete schedule", {
+        description: error instanceof Error ? error.message : "An error occurred",
+      });
+    } finally {
+      setIsLoading(false);
+      setIsDeleteDialogOpen(false);
+      setScheduleToDelete(null);
+    }
   };
 
   const resetForm = () => {
@@ -143,7 +192,10 @@ export default function AdminSchedulesPage() {
 
           <Dialog
             open={isCreateDialogOpen}
-            onOpenChange={setIsCreateDialogOpen}
+            onOpenChange={(open) => {
+              setIsCreateDialogOpen(open);
+              if (!open) resetForm();
+            }}
           >
             <DialogTrigger asChild>
               <Button onClick={() => setIsCreateDialogOpen(true)}>
@@ -203,17 +255,37 @@ export default function AdminSchedulesPage() {
                 <Button
                   variant="outline"
                   onClick={() => setIsCreateDialogOpen(false)}
+                  disabled={isLoading}
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleCreate}>Create Schedule</Button>
+                <Button onClick={handleCreate} disabled={isLoading}>
+                  {isLoading ? "Creating..." : "Create Schedule"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
 
         <div className="space-y-6">
-          <Card>
+          {isLoading ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <p className="text-gray-500">Loading schedules...</p>
+              </CardContent>
+            </Card>
+          ) : schedules.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No schedules yet</h3>
+                <p className="text-gray-600 mb-4">
+                  Create your first schedule to get started
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
@@ -262,21 +334,16 @@ export default function AdminSchedulesPage() {
               </div>
             </CardContent>
           </Card>
-
-          {schedules.length === 0 && (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No schedules yet</h3>
-                <p className="text-gray-600 mb-4">
-                  Create your first schedule to get started
-                </p>
-              </CardContent>
-            </Card>
           )}
         </div>
 
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <Dialog
+          open={isEditDialogOpen}
+          onOpenChange={(open) => {
+            setIsEditDialogOpen(open);
+            if (!open) resetForm();
+          }}
+        >
           <DialogContent className="max-w-xl">
             <DialogHeader>
               <DialogTitle>Edit Schedule</DialogTitle>
@@ -327,30 +394,37 @@ export default function AdminSchedulesPage() {
               <Button
                 variant="outline"
                 onClick={() => setIsEditDialogOpen(false)}
+                disabled={isLoading}
               >
                 Cancel
               </Button>
-              <Button onClick={handleUpdate}>Update Schedule</Button>
+              <Button onClick={handleUpdate} disabled={isLoading}>
+                {isLoading ? "Updating..." : "Update Schedule"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
-        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the schedule
-                and all associated data.
+                This action cannot be undone. This will permanently delete the
+                schedule and all associated data.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDeleteConfirm}
+                disabled={isLoading}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                Delete
+                {isLoading ? "Deleting..." : "Delete"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -36,7 +36,7 @@ export const attractionService = {
       formData.append("Image", data.image);
     }
 
-    const response = await fetch(API_ENDPOINTS.attractions.getAll, {
+    const response = await fetch(API_ENDPOINTS.attractions.create, {
       method: "POST",
       credentials: "include",
       body: formData,
@@ -60,7 +60,7 @@ export const attractionService = {
       formData.append("Image", data.image);
     }
 
-    const response = await fetch(API_ENDPOINTS.attractions.getById(id), {
+    const response = await fetch(API_ENDPOINTS.attractions.update(id), {
       method: "PUT",
       credentials: "include",
       body: formData,
@@ -75,7 +75,7 @@ export const attractionService = {
   },
 
   async delete(id: string): Promise<void> {
-    const response = await fetch(API_ENDPOINTS.attractions.getById(id), {
+    const response = await fetch(API_ENDPOINTS.attractions.delete(id), {
       method: "DELETE",
       credentials: "include",
     });

@@ -230,7 +230,10 @@ export default function AdminAttractionsPage() {
 
           <Dialog
             open={isCreateDialogOpen}
-            onOpenChange={setIsCreateDialogOpen}
+            onOpenChange={(open) => {
+              setIsCreateDialogOpen(open);
+              if (!open) resetForm();
+            }}
           >
             <DialogTrigger asChild>
               <Button onClick={() => setIsCreateDialogOpen(true)}>
@@ -359,62 +362,70 @@ export default function AdminAttractionsPage() {
             </div>
           ) : attractions.length === 0 ? (
             <div className="col-span-full text-center py-8">
-              <p className="text-gray-500">No attractions found. Create one to get started!</p>
+              <p className="text-gray-500">
+                No attractions found. Create one to get started!
+              </p>
             </div>
           ) : (
             attractions.map((attraction) => (
-            <Card key={attraction.id} className="overflow-hidden">
-              <div className="aspect-video bg-gray-100 relative">
-                {attraction.imageUrl ? (
-                  <img
-                    src={attraction.imageUrl}
-                    alt={attraction.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <ImageIcon className="h-16 w-16 text-gray-400" />
-                  </div>
-                )}
-              </div>
-              <CardHeader>
-                <CardTitle>{attraction.name}</CardTitle>
-                <CardDescription className="line-clamp-2">
-                  {attraction.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Capacity:</span>
-                  <span className="font-semibold">
-                    {attraction.capacity} people
-                  </span>
+              <Card key={attraction.id} className="overflow-hidden">
+                <div className="aspect-video bg-gray-100 relative">
+                  {attraction.imageUrl ? (
+                    <img
+                      src={attraction.imageUrl}
+                      alt={attraction.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ImageIcon className="h-16 w-16 text-gray-400" />
+                    </div>
+                  )}
                 </div>
-              </CardContent>
-              <CardFooter className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => handleEdit(attraction)}
-                >
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Edit
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDeleteClick(attraction.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </CardFooter>
-            </Card>
+                <CardHeader>
+                  <CardTitle>{attraction.name}</CardTitle>
+                  <CardDescription className="line-clamp-2">
+                    {attraction.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Capacity:</span>
+                    <span className="font-semibold">
+                      {attraction.capacity} people
+                    </span>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleEdit(attraction)}
+                  >
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDeleteClick(attraction.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </CardFooter>
+              </Card>
             ))
           )}
         </div>
 
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <Dialog
+          open={isEditDialogOpen}
+          onOpenChange={(open) => {
+            setIsEditDialogOpen(open);
+            if (!open) resetForm();
+          }}
+        >
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Edit Attraction</DialogTitle>
@@ -526,13 +537,16 @@ export default function AdminAttractionsPage() {
           </DialogContent>
         </Dialog>
 
-        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the attraction
-                and remove all associated data.
+                This action cannot be undone. This will permanently delete the
+                attraction and remove all associated data.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
