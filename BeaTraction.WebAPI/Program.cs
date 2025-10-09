@@ -1,4 +1,5 @@
 using BeaTraction.Application;
+using BeaTraction.Application.Interfaces;
 using BeaTraction.Infrastructure;
 using BeaTraction.Infrastructure.Persistence;
 using DotNetEnv;
@@ -129,6 +130,11 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     context.Database.EnsureCreated();
+    
+    // Initialize MinIO bucket
+    var minioService = scope.ServiceProvider.GetRequiredService<IMinioService>();
+    await minioService.EnsureBucketExistsAsync();
+    Console.WriteLine("MinIO bucket initialized successfully");
 }
 
 // Configure the HTTP request pipeline.

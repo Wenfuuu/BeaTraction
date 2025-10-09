@@ -28,6 +28,7 @@ public static class DependencyInjection
 
         // services
         services.AddScoped<IJwtService, JwtService>();
+        services.AddSingleton<IMinioService, MinioService>();
 
         return services;
     }

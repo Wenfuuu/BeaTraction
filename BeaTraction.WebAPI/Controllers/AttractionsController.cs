@@ -52,14 +52,14 @@ public class AttractionsController : ControllerBase
     [ProducesResponseType(typeof(AttractionDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Authorize]
-    public async Task<ActionResult<AttractionDto>> CreateAttraction([FromBody] CreateAttractionDto dto)
+    public async Task<ActionResult<AttractionDto>> CreateAttraction([FromForm] CreateAttractionDto dto)
     {
         try
         {
             var command = new CreateAttractionCommand(
                 dto.Name,
                 dto.Description,
-                dto.ImageUrl,
+                dto.Image,
                 dto.Capacity
             );
 
@@ -90,7 +90,7 @@ public class AttractionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Authorize]
-    public async Task<ActionResult<AttractionDto>> UpdateAttraction(Guid id, [FromBody] UpdateAttractionDto dto)
+    public async Task<ActionResult<AttractionDto>> UpdateAttraction(Guid id, [FromForm] UpdateAttractionDto dto)
     {
         try
         {
@@ -98,7 +98,7 @@ public class AttractionsController : ControllerBase
                 id,
                 dto.Name,
                 dto.Description,
-                dto.ImageUrl,
+                dto.Image,
                 dto.Capacity
             );
 
