@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,105 +26,47 @@ import {
   Users,
   CheckCircle,
   Image as ImageIcon,
+  AlertCircle,
 } from "lucide-react";
-
-interface ScheduleAttractionWithStats {
-  scheduleAttractionId: string;
-  scheduleId: string;
-  scheduleName: string;
-  startTime: string;
-  endTime: string;
-  registrationCount: number;
-  isRegistered: boolean;
-}
-
-interface AttractionWithSchedules extends Attraction {
-  scheduleAttractions: ScheduleAttractionWithStats[];
-}
+import { userRegistrationService, type AttractionWithSchedules, type ScheduleAttractionWithStats } from "@/services/userRegistrationService";
+import { registrationService } from "@/services/registrationService";
 
 export default function UserRegistrationPage() {
   const { user } = useAuthContext();
-  const currentUserId = user?.id || "123";
+  const currentUserId = user?.id || "";
 
-  const [attractions] = useState<AttractionWithSchedules[]>([
-    {
-      id: "1",
-      name: "Roller Coaster",
-      description:
-        "Experience the thrill of loops, drops, and high-speed turns on our world-class roller coaster!",
-      imageUrl: "https://via.placeholder.com/600x400",
-      capacity: 50,
-      createdAt: new Date().toISOString(),
-      rowVersion: 1,
-      scheduleAttractions: [
-        {
-          scheduleAttractionId: "sa-1",
-          scheduleId: "1",
-          scheduleName: "Morning Session",
-          startTime: "2025-10-10T09:00:00",
-          endTime: "2025-10-10T12:00:00",
-          registrationCount: 20,
-          isRegistered: false,
-        },
-        {
-          scheduleAttractionId: "sa-2",
-          scheduleId: "2",
-          scheduleName: "Afternoon Session",
-          startTime: "2025-10-10T13:00:00",
-          endTime: "2025-10-10T16:00:00",
-          registrationCount: 15,
-          isRegistered: false,
-        },
-      ],
-    },
-    {
-      id: "2",
-      name: "Ferris Wheel",
-      description:
-        "Enjoy breathtaking panoramic views of the entire theme park from our giant Ferris wheel.",
-      imageUrl: null,
-      capacity: 40,
-      createdAt: new Date().toISOString(),
-      rowVersion: 1,
-      scheduleAttractions: [
-        {
-          scheduleAttractionId: "sa-3",
-          scheduleId: "3",
-          scheduleName: "Evening Session",
-          startTime: "2025-10-10T17:00:00",
-          endTime: "2025-10-10T20:00:00",
-          registrationCount: 38,
-          isRegistered: true,
-        },
-      ],
-    },
-    {
-      id: "3",
-      name: "Haunted House",
-      description:
-        "Dare to enter our spine-chilling haunted house filled with scares and surprises at every turn!",
-      imageUrl: "https://via.placeholder.com/600x400/333",
-      capacity: 30,
-      createdAt: new Date().toISOString(),
-      rowVersion: 1,
-      scheduleAttractions: [
-        {
-          scheduleAttractionId: "sa-4",
-          scheduleId: "4",
-          scheduleName: "Night Session",
-          startTime: "2025-10-10T19:00:00",
-          endTime: "2025-10-10T22:00:00",
-          registrationCount: 10,
-          isRegistered: false,
-        },
-      ],
-    },
-  ]);
-
+  const [attractions, setAttractions] = useState<AttractionWithSchedules[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedSchedule, setSelectedSchedule] = useState<{
     attraction: Attraction;
     scheduleAttraction: ScheduleAttractionWithStats;
   } | null>(null);
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  useEffect(() => {
+    if (currentUserId) {
+      loadAttractions();
+    }
+  }, [currentUserId]);
+
+  const loadAttractions = async () => {
+    if (!currentUserId) {
+      toast.error("Please log in to view attractions");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const data = await userRegistrationService.getAttractionsWithSchedules(currentUserId);
+      setAttractions(data);
+    } catch (error) {
+      console.error("Error loading attractions:", error);
+      toast.error("Failed to load attractions");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString("en-US", {
@@ -148,32 +90,62 @@ export default function UserRegistrationPage() {
     setSelectedSchedule({ attraction, scheduleAttraction });
   };
 
-  const handleConfirmRegistration = () => {
-    if (!selectedSchedule) return;
+  const handleConfirmRegistration = async () => {
+    if (!selectedSchedule || !currentUserId) return;
 
-    console.log("Register for:", {
-      userId: currentUserId,
-      scheduleAttractionId: selectedSchedule.scheduleAttraction.scheduleAttractionId,
-    });
+    try {
+      setIsRegistering(true);
+      await registrationService.create({
+        userId: currentUserId,
+        scheduleAttractionId: selectedSchedule.scheduleAttraction.scheduleAttractionId,
+        registeredAt: new Date().toISOString(),
+      });
 
-    // TODO: API call
-    toast.success("Registration successful!", {
-      description: `You're registered for ${selectedSchedule.attraction.name} - ${selectedSchedule.scheduleAttraction.scheduleName}`,
-    });
+      toast.success("Registration successful!", {
+        description: `You're registered for ${selectedSchedule.attraction.name} - ${selectedSchedule.scheduleAttraction.scheduleName}`,
+      });
 
-    setSelectedSchedule(null);
+      setSelectedSchedule(null);
+      
+      await loadAttractions();
+    } catch (error) {
+      console.error("Error registering:", error);
+      toast.error("Failed to register", {
+        description: error instanceof Error ? error.message : "Please try again",
+      });
+    } finally {
+      setIsRegistering(false);
+    }
   };
 
-  const handleCancelRegistration = (
+  const handleCancelRegistration = async (
     scheduleAttractionId: string,
     attractionName: string
   ) => {
-    console.log("Cancel registration for scheduleAttraction:", scheduleAttractionId);
+    try {
+      const userRegistrations = await registrationService.getByUserId(currentUserId);
+      const registration = userRegistrations.find(
+        r => r.scheduleAttractionId === scheduleAttractionId
+      );
 
-    // TODO: API call
-    toast.success("Registration cancelled", {
-      description: `Your registration for ${attractionName} has been cancelled.`,
-    });
+      if (!registration) {
+        toast.error("Registration not found");
+        return;
+      }
+
+      await registrationService.delete(registration.id);
+
+      toast.success("Registration cancelled", {
+        description: `Your registration for ${attractionName} has been cancelled.`,
+      });
+
+      await loadAttractions();
+    } catch (error) {
+      console.error("Error cancelling registration:", error);
+      toast.error("Failed to cancel registration", {
+        description: error instanceof Error ? error.message : "Please try again",
+      });
+    }
   };
 
   return (
@@ -186,7 +158,27 @@ export default function UserRegistrationPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading attractions...</p>
+            </div>
+          </div>
+        ) : attractions.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <AlertCircle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                No attractions available
+              </h3>
+              <p className="text-gray-600">
+                Check back later for new attractions!
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {attractions.map((attraction) => (
             <Card key={attraction.id} className="overflow-hidden flex flex-col">
               <div className="aspect-video bg-gray-100 relative">
@@ -314,20 +306,7 @@ export default function UserRegistrationPage() {
               </CardContent>
             </Card>
           ))}
-        </div>
-
-        {attractions.length === 0 && (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">
-                No attractions available
-              </h3>
-              <p className="text-gray-600">
-                Check back later for new attractions!
-              </p>
-            </CardContent>
-          </Card>
+          </div>
         )}
 
         <Dialog
@@ -391,11 +370,15 @@ export default function UserRegistrationPage() {
               <Button
                 variant="outline"
                 onClick={() => setSelectedSchedule(null)}
+                disabled={isRegistering}
               >
                 Cancel
               </Button>
-              <Button onClick={handleConfirmRegistration}>
-                Confirm Registration
+              <Button 
+                onClick={handleConfirmRegistration}
+                disabled={isRegistering}
+              >
+                {isRegistering ? "Registering..." : "Confirm Registration"}
               </Button>
             </DialogFooter>
           </DialogContent>

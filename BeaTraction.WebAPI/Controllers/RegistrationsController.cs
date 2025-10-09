@@ -41,6 +41,16 @@ public class RegistrationsController : ControllerBase
         return Ok(response);
     }
 
+    [HttpGet("user/{userId}")]
+    [ProducesResponseType(typeof(List<RegistrationDto>), StatusCodes.Status200OK)]
+    [Authorize]
+    public async Task<ActionResult<List<RegistrationDto>>> GetRegistrationsByUserId(Guid userId)
+    {
+        var query = new GetRegistrationsByUserIdQuery(userId);
+        var response = await _mediator.Send(query);
+        return Ok(response);
+    }
+
     [HttpPost]
     [ProducesResponseType(typeof(RegistrationDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

@@ -34,6 +34,9 @@ export const API_ENDPOINTS = {
   },
   registrations: {
     getAll: `${API_BASE_URL}/Registrations`,
+    getById: (id: string) => `${API_BASE_URL}/Registrations/${id}`,
+    getByUserId: (userId: string) => `${API_BASE_URL}/Registrations/user/${userId}`,
     create: `${API_BASE_URL}/Registrations`,
+    delete: (id: string) => `${API_BASE_URL}/Registrations/${id}`,
   },
 };

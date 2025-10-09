@@ -14,6 +14,18 @@ export const registrationService = {
     return response.json();
   },
 
+  async getByUserId(userId: string): Promise<Registration[]> {
+    const response = await fetch(API_ENDPOINTS.registrations.getByUserId(userId), {
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch user registrations");
+    }
+
+    return response.json();
+  },
+
   async create(data: { userId: string; scheduleAttractionId: string; registeredAt: string }): Promise<Registration> {
     const response = await fetch(API_ENDPOINTS.registrations.create, {
       method: "POST",
@@ -30,5 +42,17 @@ export const registrationService = {
     }
 
     return response.json();
+  },
+
+  async delete(id: string): Promise<void> {
+    const response = await fetch(API_ENDPOINTS.registrations.delete(id), {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: "Failed to delete registration" }));
+      throw new Error(error.message || "Failed to delete registration");
+    }
   },
 };
