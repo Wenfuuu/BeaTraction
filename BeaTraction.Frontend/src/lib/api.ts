@@ -22,6 +22,14 @@ export const API_ENDPOINTS = {
     update: (id: string) => `${API_BASE_URL}/Schedules/${id}`,
     delete: (id: string) => `${API_BASE_URL}/Schedules/${id}`,
   },
+  scheduleAttractions: {
+    getAll: `${API_BASE_URL}/ScheduleAttractions`,
+    getById: (id: string) => `${API_BASE_URL}/ScheduleAttractions/${id}`,
+    getByScheduleId: (scheduleId: string) => `${API_BASE_URL}/ScheduleAttractions/schedule/${scheduleId}`,
+    getByAttractionId: (attractionId: string) => `${API_BASE_URL}/ScheduleAttractions/attraction/${attractionId}`,
+    create: `${API_BASE_URL}/ScheduleAttractions`,
+    delete: (id: string) => `${API_BASE_URL}/ScheduleAttractions/${id}`,
+  },
   registrations: {
     getAll: `${API_BASE_URL}/Registrations`,
     create: `${API_BASE_URL}/Registrations`,

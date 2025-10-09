@@ -29,22 +29,36 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { Schedule, CreateScheduleRequest } from "@/types/schedule.types";
-import { Plus, Pencil, Trash2, Calendar, Clock } from "lucide-react";
+import type { Attraction } from "@/types/attraction.types";
+import type { ScheduleAttractionWithDetails } from "@/types/schedule-attraction.types";
+import { Plus, Pencil, Trash2, Calendar, Clock, MapPin, X } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { scheduleService } from "@/services/scheduleService";
+import { attractionService } from "@/services/attractionService";
+import { scheduleAttractionService } from "@/services/scheduleAttractionService";
 
 export default function AdminSchedulesPage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [attractions, setAttractions] = useState<Attraction[]>([]);
+  const [scheduleAttractions, setScheduleAttractions] = useState<ScheduleAttractionWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(
-    null
-  );
+  const [isManageAttractionsDialogOpen, setIsManageAttractionsDialogOpen] = useState(false);
+  
+  const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [scheduleToDelete, setScheduleToDelete] = useState<string | null>(null);
+  const [selectedAttractionId, setSelectedAttractionId] = useState<string>("");
 
   const [formData, setFormData] = useState<CreateScheduleRequest>({
     name: "",
@@ -53,29 +67,108 @@ export default function AdminSchedulesPage() {
   });
 
   useEffect(() => {
-    const loadSchedules = async () => {
+    const loadData = async () => {
       try {
         setIsLoading(true);
-        const data = await scheduleService.getAll();
-        setSchedules(data);
+        const [schedulesData, attractionsData, scheduleAttractionsData] = await Promise.all([
+          scheduleService.getAll(),
+          attractionService.getAll(),
+          scheduleAttractionService.getAll(),
+        ]);
+        setSchedules(schedulesData);
+        setAttractions(attractionsData);
+        setScheduleAttractions(scheduleAttractionsData);
       } catch (error) {
-        toast.error("Failed to load schedules", {
+        toast.error("Failed to load data", {
           description: error instanceof Error ? error.message : "An error occurred",
         });
       } finally {
         setIsLoading(false);
       }
     };
-    loadSchedules();
+    loadData();
   }, []);
 
   const fetchSchedules = async () => {
     try {
       setIsLoading(true);
-      const data = await scheduleService.getAll();
-      setSchedules(data);
+      const [schedulesData, scheduleAttractionsData] = await Promise.all([
+        scheduleService.getAll(),
+        scheduleAttractionService.getAll(),
+      ]);
+      setSchedules(schedulesData);
+      setScheduleAttractions(scheduleAttractionsData);
     } catch (error) {
       toast.error("Failed to load schedules", {
+        description: error instanceof Error ? error.message : "An error occurred",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getScheduleAttractions = (scheduleId: string) => {
+    return scheduleAttractions.filter(sa => sa.scheduleId === scheduleId);
+  };
+
+  const handleManageAttractions = (schedule: Schedule) => {
+    setSelectedSchedule(schedule);
+    setIsManageAttractionsDialogOpen(true);
+  };
+
+  const handleAddAttraction = async () => {
+    if (!selectedSchedule || !selectedAttractionId) {
+      toast.error("Please select an attraction");
+      return;
+    }
+
+    const alreadyExists = scheduleAttractions.some(
+      sa => sa.scheduleId === selectedSchedule.id && sa.attractionId === selectedAttractionId
+    );
+
+    if (alreadyExists) {
+      toast.error("Attraction already added", {
+        description: "This attraction is already in this schedule",
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await scheduleAttractionService.create({
+        scheduleId: selectedSchedule.id,
+        attractionId: selectedAttractionId,
+      });
+      
+      const updatedScheduleAttractions = await scheduleAttractionService.getAll();
+      setScheduleAttractions(updatedScheduleAttractions);
+      
+      setSelectedAttractionId("");
+      toast.success("Success!", {
+        description: "Attraction added to schedule",
+      });
+    } catch (error) {
+      toast.error("Failed to add attraction", {
+        description: error instanceof Error ? error.message : "An error occurred",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRemoveAttraction = async (scheduleAttractionId: string) => {
+    try {
+      setIsLoading(true);
+      await scheduleAttractionService.delete(scheduleAttractionId);
+      
+      const updatedScheduleAttractions = await scheduleAttractionService.getAll();
+      setScheduleAttractions(updatedScheduleAttractions);
+      
+      toast.success("Success!", {
+        description: "Attraction removed from schedule",
+      });
+    } catch (error) {
+      toast.error("Failed to remove attraction", {
         description: error instanceof Error ? error.message : "An error occurred",
       });
     } finally {
@@ -312,8 +405,22 @@ export default function AdminSchedulesPage() {
                         <span>→</span>
                         <span>{formatDateTime(schedule.endTime)}</span>
                       </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <MapPin className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-600">
+                          {getScheduleAttractions(schedule.id).length} attraction(s)
+                        </span>
+                      </div>
                     </div>
                     <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleManageAttractions(schedule)}
+                      >
+                        <MapPin className="h-4 w-4 mr-1" />
+                        Manage
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
@@ -429,6 +536,116 @@ export default function AdminSchedulesPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <Dialog
+          open={isManageAttractionsDialogOpen}
+          onOpenChange={setIsManageAttractionsDialogOpen}
+        >
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Manage Attractions</DialogTitle>
+              <DialogDescription>
+                Add or remove attractions for "{selectedSchedule?.name}"
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-6 py-4">
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold">Add Attraction</h3>
+                <div className="flex gap-2">
+                  <Select
+                    value={selectedAttractionId}
+                    onValueChange={setSelectedAttractionId}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select an attraction" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {attractions
+                        .filter(attr => !getScheduleAttractions(selectedSchedule?.id || "")
+                          .some(sa => sa.attractionId === attr.id))
+                        .map((attraction) => (
+                          <SelectItem key={attraction.id} value={attraction.id}>
+                            {attraction.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    onClick={handleAddAttraction}
+                    disabled={!selectedAttractionId || isLoading}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold">Current Attractions</h3>
+                {getScheduleAttractions(selectedSchedule?.id || "").length === 0 ? (
+                  <p className="text-sm text-gray-500 text-center py-8">
+                    No attractions added yet
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {getScheduleAttractions(selectedSchedule?.id || "").map((sa) => {
+                      const attraction = attractions.find(a => a.id === sa.attractionId);
+                      if (!attraction) return null;
+                      
+                      return (
+                        <div
+                          key={sa.id}
+                          className="flex items-center justify-between p-3 border rounded-lg"
+                        >
+                          <div className="flex items-center gap-3">
+                            {attraction.imageUrl ? (
+                              <img
+                                src={attraction.imageUrl}
+                                alt={attraction.name}
+                                className="w-12 h-12 object-cover rounded"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                                <MapPin className="h-6 w-6 text-gray-400" />
+                              </div>
+                            )}
+                            <div>
+                              <h4 className="font-semibold">{attraction.name}</h4>
+                              <p className="text-sm text-gray-600">
+                                Capacity: {attraction.capacity}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoveAttraction(sa.id)}
+                            disabled={isLoading}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsManageAttractionsDialogOpen(false);
+                  setSelectedAttractionId("");
+                }}
+              >
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );
