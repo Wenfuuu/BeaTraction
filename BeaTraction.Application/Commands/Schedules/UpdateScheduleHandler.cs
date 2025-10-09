@@ -15,7 +15,7 @@ public class UpdateScheduleHandler : IRequestHandler<UpdateScheduleCommand, Sche
 
     public async Task<ScheduleDto> Handle(UpdateScheduleCommand request, CancellationToken cancellationToken)
     {
-        var schedule = await _scheduleRepository.GetByIdAsync(request.Id);
+        var schedule = await _scheduleRepository.GetByIdAsync(request.Id, cancellationToken);
         if (schedule == null)
         {
             throw new InvalidOperationException("Schedule not found");
@@ -25,7 +25,7 @@ public class UpdateScheduleHandler : IRequestHandler<UpdateScheduleCommand, Sche
         schedule.StartTime = request.StartTime;
         schedule.EndTime = request.EndTime;
 
-        await _scheduleRepository.UpdateAsync(schedule);
+        await _scheduleRepository.UpdateAsync(schedule, cancellationToken);
 
         return new ScheduleDto
         {

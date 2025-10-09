@@ -18,8 +18,9 @@ export default function AdminDashboardPage() {
       attractionName: "Roller Coaster",
       capacity: 50,
       totalRegistrations: 35,
-      schedules: [
+      scheduleAttractions: [
         {
+          scheduleAttractionId: "sa-1",
           scheduleId: "1",
           scheduleName: "Morning Session",
           startTime: "2025-10-10T09:00:00",
@@ -27,6 +28,7 @@ export default function AdminDashboardPage() {
           registrationCount: 20,
         },
         {
+          scheduleAttractionId: "sa-2",
           scheduleId: "2",
           scheduleName: "Afternoon Session",
           startTime: "2025-10-10T13:00:00",
@@ -40,8 +42,9 @@ export default function AdminDashboardPage() {
       attractionName: "Ferris Wheel",
       capacity: 40,
       totalRegistrations: 38,
-      schedules: [
+      scheduleAttractions: [
         {
+          scheduleAttractionId: "sa-3",
           scheduleId: "3",
           scheduleName: "Evening Session",
           startTime: "2025-10-10T17:00:00",
@@ -55,8 +58,9 @@ export default function AdminDashboardPage() {
       attractionName: "Haunted House",
       capacity: 30,
       totalRegistrations: 10,
-      schedules: [
+      scheduleAttractions: [
         {
+          scheduleAttractionId: "sa-4",
           scheduleId: "4",
           scheduleName: "Night Session",
           startTime: "2025-10-10T19:00:00",
@@ -192,7 +196,7 @@ export default function AdminDashboardPage() {
                     <div>
                       <CardTitle>{attraction.attractionName}</CardTitle>
                       <CardDescription className="mt-2">
-                        {attraction.schedules.length} schedule(s) available
+                        {attraction.scheduleAttractions.length} schedule(s) available
                       </CardDescription>
                     </div>
                     <div className="text-right">
@@ -215,30 +219,30 @@ export default function AdminDashboardPage() {
                     <h4 className="font-semibold text-sm text-gray-700">
                       Schedule Breakdown:
                     </h4>
-                    {attraction.schedules.map((schedule) => {
+                    {attraction.scheduleAttractions.map((scheduleAttraction) => {
                       const scheduleUtilization = getUtilizationPercentage(
-                        schedule.registrationCount,
+                        scheduleAttraction.registrationCount,
                         attraction.capacity
                       );
 
                       return (
                         <div
-                          key={schedule.scheduleId}
+                          key={scheduleAttraction.scheduleAttractionId}
                           className="border rounded-lg p-4 space-y-3"
                         >
                           <div className="flex items-start justify-between">
                             <div>
                               <h5 className="font-semibold">
-                                {schedule.scheduleName}
+                                {scheduleAttraction.scheduleName}
                               </h5>
                               <div className="text-sm text-gray-600 mt-1">
-                                {formatDateTime(schedule.startTime)} -{" "}
-                                {formatDateTime(schedule.endTime)}
+                                {formatDateTime(scheduleAttraction.startTime)} -{" "}
+                                {formatDateTime(scheduleAttraction.endTime)}
                               </div>
                             </div>
                             <div className="text-right">
                               <div className="font-semibold">
-                                {schedule.registrationCount} /{" "}
+                                {scheduleAttraction.registrationCount} /{" "}
                                 {attraction.capacity}
                               </div>
                               <div
@@ -260,7 +264,7 @@ export default function AdminDashboardPage() {
                               <span>
                                 Nearly full! Only{" "}
                                 {attraction.capacity -
-                                  schedule.registrationCount}{" "}
+                                  scheduleAttraction.registrationCount}{" "}
                                 spots left
                               </span>
                             </div>

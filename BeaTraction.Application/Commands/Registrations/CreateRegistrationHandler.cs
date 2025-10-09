@@ -29,7 +29,7 @@ public class CreateRegistrationHandler : IRequestHandler<CreateRegistrationComma
             throw new InvalidOperationException("User not found");
         }
 
-        var scheduleAttractionExists = await _scheduleAttractionRepository.GetByIdAsync(request.ScheduleAttractionId);
+        var scheduleAttractionExists = await _scheduleAttractionRepository.GetByIdAsync(request.ScheduleAttractionId, cancellationToken);
         if (scheduleAttractionExists == null)
         {
             throw new InvalidOperationException("ScheduleAttraction not found");

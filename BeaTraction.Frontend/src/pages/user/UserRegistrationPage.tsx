@@ -19,7 +19,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { Attraction } from "@/types/attraction.types";
-import type { Schedule } from "@/types/schedule.types";
 import { toast } from "@/lib/toast";
 import {
   Calendar,
@@ -29,11 +28,18 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 
+interface ScheduleAttractionWithStats {
+  scheduleAttractionId: string;
+  scheduleId: string;
+  scheduleName: string;
+  startTime: string;
+  endTime: string;
+  registrationCount: number;
+  isRegistered: boolean;
+}
+
 interface AttractionWithSchedules extends Attraction {
-  schedules: (Schedule & {
-    registrationCount: number;
-    isRegistered: boolean;
-  })[];
+  scheduleAttractions: ScheduleAttractionWithStats[];
 }
 
 export default function UserRegistrationPage() {
@@ -50,24 +56,22 @@ export default function UserRegistrationPage() {
       capacity: 50,
       createdAt: new Date().toISOString(),
       rowVersion: 1,
-      schedules: [
+      scheduleAttractions: [
         {
-          id: "1",
-          attractionId: "1",
-          name: "Morning Session",
+          scheduleAttractionId: "sa-1",
+          scheduleId: "1",
+          scheduleName: "Morning Session",
           startTime: "2025-10-10T09:00:00",
           endTime: "2025-10-10T12:00:00",
-          rowVersion: 1,
           registrationCount: 20,
           isRegistered: false,
         },
         {
-          id: "2",
-          attractionId: "1",
-          name: "Afternoon Session",
+          scheduleAttractionId: "sa-2",
+          scheduleId: "2",
+          scheduleName: "Afternoon Session",
           startTime: "2025-10-10T13:00:00",
           endTime: "2025-10-10T16:00:00",
-          rowVersion: 1,
           registrationCount: 15,
           isRegistered: false,
         },
@@ -82,14 +86,13 @@ export default function UserRegistrationPage() {
       capacity: 40,
       createdAt: new Date().toISOString(),
       rowVersion: 1,
-      schedules: [
+      scheduleAttractions: [
         {
-          id: "3",
-          attractionId: "2",
-          name: "Evening Session",
+          scheduleAttractionId: "sa-3",
+          scheduleId: "3",
+          scheduleName: "Evening Session",
           startTime: "2025-10-10T17:00:00",
           endTime: "2025-10-10T20:00:00",
-          rowVersion: 1,
           registrationCount: 38,
           isRegistered: true,
         },
@@ -104,14 +107,13 @@ export default function UserRegistrationPage() {
       capacity: 30,
       createdAt: new Date().toISOString(),
       rowVersion: 1,
-      schedules: [
+      scheduleAttractions: [
         {
-          id: "4",
-          attractionId: "3",
-          name: "Night Session",
+          scheduleAttractionId: "sa-4",
+          scheduleId: "4",
+          scheduleName: "Night Session",
           startTime: "2025-10-10T19:00:00",
           endTime: "2025-10-10T22:00:00",
-          rowVersion: 1,
           registrationCount: 10,
           isRegistered: false,
         },
@@ -121,7 +123,7 @@ export default function UserRegistrationPage() {
 
   const [selectedSchedule, setSelectedSchedule] = useState<{
     attraction: Attraction;
-    schedule: Schedule & { registrationCount: number; isRegistered: boolean };
+    scheduleAttraction: ScheduleAttractionWithStats;
   } | null>(null);
 
   const formatDateTime = (dateString: string) => {
@@ -141,9 +143,9 @@ export default function UserRegistrationPage() {
 
   const handleRegisterClick = (
     attraction: Attraction,
-    schedule: Schedule & { registrationCount: number; isRegistered: boolean }
+    scheduleAttraction: ScheduleAttractionWithStats
   ) => {
-    setSelectedSchedule({ attraction, schedule });
+    setSelectedSchedule({ attraction, scheduleAttraction });
   };
 
   const handleConfirmRegistration = () => {
@@ -151,23 +153,22 @@ export default function UserRegistrationPage() {
 
     console.log("Register for:", {
       userId: currentUserId,
-      scheduleId: selectedSchedule.schedule.id,
-      attractionId: selectedSchedule.attraction.id,
+      scheduleAttractionId: selectedSchedule.scheduleAttraction.scheduleAttractionId,
     });
 
     // TODO: API call
     toast.success("Registration successful!", {
-      description: `You're registered for ${selectedSchedule.attraction.name} - ${selectedSchedule.schedule.name}`,
+      description: `You're registered for ${selectedSchedule.attraction.name} - ${selectedSchedule.scheduleAttraction.scheduleName}`,
     });
 
     setSelectedSchedule(null);
   };
 
   const handleCancelRegistration = (
-    scheduleId: string,
+    scheduleAttractionId: string,
     attractionName: string
   ) => {
-    console.log("Cancel registration for schedule:", scheduleId);
+    console.log("Cancel registration for scheduleAttraction:", scheduleAttractionId);
 
     // TODO: API call
     toast.success("Registration cancelled", {
@@ -219,37 +220,37 @@ export default function UserRegistrationPage() {
                   <h4 className="font-semibold text-sm">
                     Available Schedules:
                   </h4>
-                  {attraction.schedules.map((schedule) => {
+                  {attraction.scheduleAttractions.map((scheduleAttraction) => {
                     const availableSpots = getAvailableSpots(
                       attraction.capacity,
-                      schedule.registrationCount
+                      scheduleAttraction.registrationCount
                     );
                     const utilization = getUtilizationPercentage(
-                      schedule.registrationCount,
+                      scheduleAttraction.registrationCount,
                       attraction.capacity
                     );
                     const isFull = availableSpots <= 0;
 
                     return (
                       <div
-                        key={schedule.id}
+                        key={scheduleAttraction.scheduleAttractionId}
                         className="border rounded-lg p-3 space-y-2"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <h5 className="font-semibold text-sm">
-                              {schedule.name}
+                              {scheduleAttraction.scheduleName}
                             </h5>
                             <div className="flex items-center gap-1 text-xs text-gray-600 mt-1">
                               <Calendar className="h-3 w-3" />
-                              <span>{formatDateTime(schedule.startTime)}</span>
+                              <span>{formatDateTime(scheduleAttraction.startTime)}</span>
                             </div>
                             <div className="flex items-center gap-1 text-xs text-gray-600">
                               <Clock className="h-3 w-3" />
-                              <span>{formatDateTime(schedule.endTime)}</span>
+                              <span>{formatDateTime(scheduleAttraction.endTime)}</span>
                             </div>
                           </div>
-                          {schedule.isRegistered && (
+                          {scheduleAttraction.isRegistered && (
                             <Badge variant="default" className="bg-green-500">
                               <CheckCircle className="h-3 w-3 mr-1" />
                               Registered
@@ -280,14 +281,14 @@ export default function UserRegistrationPage() {
                           </span>
                         </div>
 
-                        {schedule.isRegistered ? (
+                        {scheduleAttraction.isRegistered ? (
                           <Button
                             variant="outline"
                             size="sm"
                             className="w-full"
                             onClick={() =>
                               handleCancelRegistration(
-                                schedule.id,
+                                scheduleAttraction.scheduleAttractionId,
                                 attraction.name
                               )
                             }
@@ -300,7 +301,7 @@ export default function UserRegistrationPage() {
                             className="w-full"
                             disabled={isFull}
                             onClick={() =>
-                              handleRegisterClick(attraction, schedule)
+                              handleRegisterClick(attraction, scheduleAttraction)
                             }
                           >
                             {isFull ? "Fully Booked" : "Register Now"}
@@ -356,19 +357,19 @@ export default function UserRegistrationPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Schedule:</span>
                     <span className="font-semibold">
-                      {selectedSchedule.schedule.name}
+                      {selectedSchedule.scheduleAttraction.scheduleName}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Start Time:</span>
                     <span className="font-semibold">
-                      {formatDateTime(selectedSchedule.schedule.startTime)}
+                      {formatDateTime(selectedSchedule.scheduleAttraction.startTime)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">End Time:</span>
                     <span className="font-semibold">
-                      {formatDateTime(selectedSchedule.schedule.endTime)}
+                      {formatDateTime(selectedSchedule.scheduleAttraction.endTime)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -378,7 +379,7 @@ export default function UserRegistrationPage() {
                     <span className="font-semibold">
                       {getAvailableSpots(
                         selectedSchedule.attraction.capacity,
-                        selectedSchedule.schedule.registrationCount
+                        selectedSchedule.scheduleAttraction.registrationCount
                       )}
                     </span>
                   </div>
