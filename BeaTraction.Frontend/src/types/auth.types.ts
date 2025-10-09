@@ -15,7 +15,7 @@ export interface RegisterCredentials {
   name: string
   email: string
   password: string
-  role?: string // Optional, defaults to "user"
+  role?: string // default => "user"
 }
 
 export interface AuthResponse {

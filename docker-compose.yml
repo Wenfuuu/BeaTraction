@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: beatraction-db
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./create.sql:/docker-entrypoint-initdb.d/create.sql
+    networks:
+      - beatraction-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: BeaTraction.WebAPI/Dockerfile
+    container_name: beatraction-backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ISSUER=${JWT_ISSUER}
+      - JWT_AUDIENCE=${JWT_AUDIENCE}
+      - JWT_EXPIRATION_MINUTES=${JWT_EXPIRATION_MINUTES}
+    ports:
+      - "5271:5271"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - beatraction-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./BeaTraction.Frontend
+      dockerfile: Dockerfile
+    container_name: beatraction-frontend
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./BeaTraction.Frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - beatraction-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  beatraction-network:
+    driver: bridge

@@ -14,6 +14,15 @@ if (File.Exists(".env"))
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Debug: Print environment variables
+Console.WriteLine("=== Environment Variables ===");
+Console.WriteLine($"DB_HOST: {Environment.GetEnvironmentVariable("DB_HOST")}");
+Console.WriteLine($"DB_PORT: {Environment.GetEnvironmentVariable("DB_PORT")}");
+Console.WriteLine($"POSTGRES_DB: {Environment.GetEnvironmentVariable("POSTGRES_DB")}");
+Console.WriteLine($"POSTGRES_USER: {Environment.GetEnvironmentVariable("POSTGRES_USER")}");
+Console.WriteLine($"ASPNETCORE_ENVIRONMENT: {Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}");
+Console.WriteLine("=============================");
+
 // Add Application layer (MediatR, FluentValidation)
 builder.Services.AddApplication();
 

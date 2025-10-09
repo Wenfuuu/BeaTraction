@@ -13,7 +13,7 @@ export function useAuth() {
         setUser(userData);
       } catch {
         setUser(null);
-        localStorage.removeItem('user');
+        localStorage.removeItem("user");
       } finally {
         setIsLoading(false);
       }
