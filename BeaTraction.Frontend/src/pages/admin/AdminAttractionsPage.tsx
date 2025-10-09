@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,29 +25,13 @@ import type {
   Attraction,
   CreateAttractionRequest,
 } from "@/types/attraction.types";
-import { Plus, Pencil, Trash2, Image as ImageIcon } from "lucide-react";
+import { Plus, Pencil, Trash2, Image as ImageIcon, Upload, X } from "lucide-react";
+import { attractionService } from "@/services/attractionService";
+import { toast } from "@/lib/toast";
 
 export default function AdminAttractionsPage() {
-  const [attractions, setAttractions] = useState<Attraction[]>([
-    {
-      id: "1",
-      name: "Roller Coaster",
-      description: "An exciting roller coaster ride with loops and turns!",
-      imageUrl: "https://via.placeholder.com/400x300",
-      capacity: 50,
-      createdAt: new Date().toISOString(),
-      rowVersion: 1,
-    },
-    {
-      id: "2",
-      name: "Ferris Wheel",
-      description: "Enjoy panoramic views from our giant Ferris wheel.",
-      imageUrl: null,
-      capacity: 40,
-      createdAt: new Date().toISOString(),
-      rowVersion: 1,
-    },
-  ]);
+  const [attractions, setAttractions] = useState<Attraction[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -57,15 +41,90 @@ export default function AdminAttractionsPage() {
   const [formData, setFormData] = useState<CreateAttractionRequest>({
     name: "",
     description: "",
-    imageUrl: "",
+    image: null,
     capacity: 0,
   });
 
-  const handleCreate = () => {
-    console.log("Create attraction:", formData);
-    // TODO: API call
-    setIsCreateDialogOpen(false);
-    resetForm();
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadAttractions = async () => {
+      try {
+        setIsLoading(true);
+        const data = await attractionService.getAll();
+        setAttractions(data);
+      } catch (error) {
+        toast.error("Failed to load attractions", {
+          description: error instanceof Error ? error.message : "An error occurred",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadAttractions();
+  }, []);
+
+  const fetchAttractions = async () => {
+    try {
+      setIsLoading(true);
+      const data = await attractionService.getAll();
+      setAttractions(data);
+    } catch (error) {
+      toast.error("Failed to load attractions", {
+        description: error instanceof Error ? error.message : "An error occurred",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+      if (!validTypes.includes(file.type)) {
+        alert("Please select a valid image file (JPEG, PNG, GIF, or WebP)");
+        return;
+      }
+
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        alert("Image size must not exceed 5MB");
+        return;
+      }
+
+      setFormData({ ...formData, image: file });
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData({ ...formData, image: null });
+    setImagePreview(null);
+  };
+
+  const handleCreate = async () => {
+    try {
+      setIsLoading(true);
+      await attractionService.create(formData);
+      toast.success("Success!", {
+        description: "Attraction created successfully",
+      });
+      setIsCreateDialogOpen(false);
+      resetForm();
+      await fetchAttractions();
+    } catch (error) {
+      toast.error("Failed to create attraction", {
+        description: error instanceof Error ? error.message : "An error occurred",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEdit = (attraction: Attraction) => {
@@ -73,24 +132,54 @@ export default function AdminAttractionsPage() {
     setFormData({
       name: attraction.name,
       description: attraction.description,
-      imageUrl: attraction.imageUrl || "",
+      image: null,
       capacity: attraction.capacity,
     });
+    setImagePreview(attraction.imageUrl);
     setIsEditDialogOpen(true);
   };
 
-  const handleUpdate = () => {
-    console.log("Update attraction:", selectedAttraction?.id, formData);
-    // TODO: API call
-    setIsEditDialogOpen(false);
-    resetForm();
+  const handleUpdate = async () => {
+    if (!selectedAttraction) return;
+    
+    try {
+      setIsLoading(true);
+      await attractionService.update(selectedAttraction.id, {
+        ...formData,
+        id: selectedAttraction.id,
+        rowVersion: selectedAttraction.rowVersion,
+      });
+      toast.success("Success!", {
+        description: "Attraction updated successfully",
+      });
+      setIsEditDialogOpen(false);
+      resetForm();
+      await fetchAttractions();
+    } catch (error) {
+      toast.error("Failed to update attraction", {
+        description: error instanceof Error ? error.message : "An error occurred",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this attraction?")) {
-      console.log("Delete attraction:", id);
-      // TODO: API call
-      setAttractions(attractions.filter((a) => a.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this attraction?")) return;
+
+    try {
+      setIsLoading(true);
+      await attractionService.delete(id);
+      toast.success("Success!", {
+        description: "Attraction deleted successfully",
+      });
+      await fetchAttractions();
+    } catch (error) {
+      toast.error("Failed to delete attraction", {
+        description: error instanceof Error ? error.message : "An error occurred",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -98,9 +187,10 @@ export default function AdminAttractionsPage() {
     setFormData({
       name: "",
       description: "",
-      imageUrl: "",
+      image: null,
       capacity: 0,
     });
+    setImagePreview(null);
     setSelectedAttraction(null);
   };
 
@@ -160,15 +250,49 @@ export default function AdminAttractionsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="imageUrl">Image URL (optional)</Label>
-                  <Input
-                    id="imageUrl"
-                    placeholder="https://example.com/image.jpg"
-                    value={formData.imageUrl}
-                    onChange={(e) =>
-                      setFormData({ ...formData, imageUrl: e.target.value })
-                    }
-                  />
+                  <Label htmlFor="image">Image (optional)</Label>
+                  <div className="space-y-4">
+                    {imagePreview ? (
+                      <div className="relative">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-full h-48 object-cover rounded-lg border"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-2 right-2"
+                          onClick={handleRemoveImage}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                        <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                        <div className="mt-2">
+                          <Label
+                            htmlFor="image"
+                            className="cursor-pointer text-sm text-blue-600 hover:text-blue-500"
+                          >
+                            Click to upload
+                          </Label>
+                          <Input
+                            id="image"
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                            className="hidden"
+                            onChange={handleImageChange}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          PNG, JPG, GIF, WebP up to 5MB
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -193,17 +317,29 @@ export default function AdminAttractionsPage() {
                 <Button
                   variant="outline"
                   onClick={() => setIsCreateDialogOpen(false)}
+                  disabled={isLoading}
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleCreate}>Create Attraction</Button>
+                <Button onClick={handleCreate} disabled={isLoading}>
+                  {isLoading ? "Creating..." : "Create Attraction"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {attractions.map((attraction) => (
+          {isLoading ? (
+            <div className="col-span-full text-center py-8">
+              <p className="text-gray-500">Loading attractions...</p>
+            </div>
+          ) : attractions.length === 0 ? (
+            <div className="col-span-full text-center py-8">
+              <p className="text-gray-500">No attractions found. Create one to get started!</p>
+            </div>
+          ) : (
+            attractions.map((attraction) => (
             <Card key={attraction.id} className="overflow-hidden">
               <div className="aspect-video bg-gray-100 relative">
                 {attraction.imageUrl ? (
@@ -251,7 +387,8 @@ export default function AdminAttractionsPage() {
                 </Button>
               </CardFooter>
             </Card>
-          ))}
+            ))
+          )}
         </div>
 
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -288,15 +425,49 @@ export default function AdminAttractionsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-imageUrl">Image URL (optional)</Label>
-                <Input
-                  id="edit-imageUrl"
-                  placeholder="https://example.com/image.jpg"
-                  value={formData.imageUrl}
-                  onChange={(e) =>
-                    setFormData({ ...formData, imageUrl: e.target.value })
-                  }
-                />
+                <Label htmlFor="edit-image">Image (optional)</Label>
+                <div className="space-y-4">
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-48 object-cover rounded-lg border"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2"
+                        onClick={handleRemoveImage}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                      <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                      <div className="mt-2">
+                        <Label
+                          htmlFor="edit-image"
+                          className="cursor-pointer text-sm text-blue-600 hover:text-blue-500"
+                        >
+                          Click to upload new image
+                        </Label>
+                        <Input
+                          id="edit-image"
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                          className="hidden"
+                          onChange={handleImageChange}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        PNG, JPG, GIF, WebP up to 5MB
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -321,10 +492,13 @@ export default function AdminAttractionsPage() {
               <Button
                 variant="outline"
                 onClick={() => setIsEditDialogOpen(false)}
+                disabled={isLoading}
               >
                 Cancel
               </Button>
-              <Button onClick={handleUpdate}>Update Attraction</Button>
+              <Button onClick={handleUpdate} disabled={isLoading}>
+                {isLoading ? "Updating..." : "Update Attraction"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

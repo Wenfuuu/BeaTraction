@@ -1,108 +1,119 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { toast } from '@/lib/toast'
-import { authService } from '@/services/auth.service'
-import type { RegisterCredentials } from '@/types/auth.types'
+import { useState } from "react";
+import type { FormEvent } from "react";
+import { Link, useNavigate } from "react-router";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { toast } from "@/lib/toast";
+import { authService } from "@/services/authService";
+import type { RegisterCredentials } from "@/types/auth.types";
 
 interface RegisterFormData extends RegisterCredentials {
-  confirmPassword: string
+  confirmPassword: string;
 }
 
 export default function RegisterPage() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<RegisterFormData>({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    role: 'user',
-  })
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isLoading, setIsLoading] = useState(false)
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "user",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     if (!formData.name) {
-      newErrors.name = 'Name is required'
+      newErrors.name = "Name is required";
     }
 
     if (!formData.email) {
-      newErrors.email = 'Email is required'
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid'
+      newErrors.email = "Email is invalid";
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required'
+      newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters'
+      newErrors.password = "Password must be at least 6 characters";
     }
 
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password'
+      newErrors.confirmPassword = "Please confirm your password";
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match'
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!validateForm()) return
+    if (!validateForm()) return;
 
-    setIsLoading(true)
-    setErrors({})
+    setIsLoading(true);
+    setErrors({});
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { confirmPassword, ...registerData } = formData
-      const response = await authService.register(registerData)
-      
-      toast.success('Registration successful!', {
+      const { confirmPassword, ...registerData } = formData;
+      const response = await authService.register(registerData);
+
+      toast.success("Registration successful!", {
         description: `Welcome, ${response.user.name}! You can now sign in.`,
-      })
-      
+      });
+
       setTimeout(() => {
-        navigate('/')
-      }, 1000)
-      
+        navigate("/");
+      }, 1000);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred. Please try again.'
-      console.error('Registration error:', error)
-      
-      toast.error('Registration failed', {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An error occurred. Please try again.";
+      console.error("Registration error:", error);
+
+      toast.error("Registration failed", {
         description: errorMessage,
-      })
-      
-      setErrors({ general: errorMessage })
+      });
+
+      setErrors({ general: errorMessage });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value } as RegisterFormData))
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value } as RegisterFormData));
     // clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }))
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">
+            Create an account
+          </CardTitle>
           <CardDescription className="text-center">
             Enter your information to get started
           </CardDescription>
@@ -124,7 +135,7 @@ export default function RegisterPage() {
                 placeholder="John Doe"
                 value={formData.name}
                 onChange={handleChange}
-                className={errors.name ? 'border-red-500' : ''}
+                className={errors.name ? "border-red-500" : ""}
                 disabled={isLoading}
               />
               {errors.name && (
@@ -141,7 +152,7 @@ export default function RegisterPage() {
                 placeholder="john@example.com"
                 value={formData.email}
                 onChange={handleChange}
-                className={errors.email ? 'border-red-500' : ''}
+                className={errors.email ? "border-red-500" : ""}
                 disabled={isLoading}
               />
               {errors.email && (
@@ -158,7 +169,7 @@ export default function RegisterPage() {
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={handleChange}
-                className={errors.password ? 'border-red-500' : ''}
+                className={errors.password ? "border-red-500" : ""}
                 disabled={isLoading}
               />
               {errors.password && (
@@ -175,7 +186,7 @@ export default function RegisterPage() {
                 placeholder="••••••••"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className={errors.confirmPassword ? 'border-red-500' : ''}
+                className={errors.confirmPassword ? "border-red-500" : ""}
                 disabled={isLoading}
               />
               {errors.confirmPassword && (
@@ -185,20 +196,13 @@ export default function RegisterPage() {
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-4">
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isLoading}
-            >
-              {isLoading ? 'Creating account...' : 'Create account'}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Creating account..." : "Create account"}
             </Button>
-            
+
             <p className="text-sm text-center text-gray-600">
-              Already have an account?{' '}
-              <Link 
-                to="/" 
-                className="font-medium text-primary hover:underline"
-              >
+              Already have an account?{" "}
+              <Link to="/" className="font-medium text-primary hover:underline">
                 Sign in
               </Link>
             </p>
@@ -206,5 +210,5 @@ export default function RegisterPage() {
         </form>
       </Card>
     </div>
-  )
+  );
 }

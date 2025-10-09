@@ -11,7 +11,7 @@ export interface Attraction {
 export interface CreateAttractionRequest {
   name: string;
   description: string;
-  imageUrl?: string;
+  image?: File | null;
   capacity: number;
 }
 
@@ -19,7 +19,7 @@ export interface UpdateAttractionRequest {
   id: string;
   name: string;
   description: string;
-  imageUrl?: string;
+  image?: File | null;
   capacity: number;
   rowVersion: number;
 }

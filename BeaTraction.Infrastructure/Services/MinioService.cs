@@ -9,18 +9,19 @@ public class MinioService : IMinioService
 {
     private readonly IMinioClient _minioClient;
     private readonly string _bucketName;
-    private readonly string _endpoint;
+    private readonly string _publicEndpoint;
     private readonly bool _useSsl;
 
     public MinioService(IConfiguration configuration)
     {
         var endpoint = Environment.GetEnvironmentVariable("MINIO_ENDPOINT") ?? "localhost:9000";
+        var publicEndpoint = Environment.GetEnvironmentVariable("MINIO_PUBLIC_ENDPOINT") ?? "localhost:9000";
         var accessKey = Environment.GetEnvironmentVariable("MINIO_ACCESS_KEY") ?? "minioadmin";
         var secretKey = Environment.GetEnvironmentVariable("MINIO_SECRET_KEY") ?? "minioadmin123";
         _bucketName = Environment.GetEnvironmentVariable("MINIO_BUCKET_NAME") ?? "bucket-images";
         _useSsl = bool.Parse(Environment.GetEnvironmentVariable("MINIO_USE_SSL") ?? "false");
         
-        _endpoint = endpoint;
+        _publicEndpoint = publicEndpoint;
 
         _minioClient = new MinioClient()
             .WithEndpoint(endpoint)
@@ -148,7 +149,7 @@ public class MinioService : IMinioService
             return Task.FromResult(string.Empty);
 
         var protocol = _useSsl ? "https" : "http";
-        var url = $"{protocol}://{_endpoint}/{_bucketName}/{fileName}";
+        var url = $"{protocol}://{_publicEndpoint}/{_bucketName}/{fileName}";
         
         return Task.FromResult(url);
     }
