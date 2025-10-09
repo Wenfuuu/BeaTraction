@@ -21,6 +21,26 @@ services:
       timeout: 5s
       retries: 5
 
+  minio:
+    image: minio/minio:latest
+    container_name: beatraction-minio
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - beatraction-network
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: .
@@ -37,10 +57,17 @@ services:
       - JWT_ISSUER=${JWT_ISSUER}
       - JWT_AUDIENCE=${JWT_AUDIENCE}
       - JWT_EXPIRATION_MINUTES=${JWT_EXPIRATION_MINUTES}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+      - MINIO_ACCESS_KEY=${MINIO_ROOT_USER}
+      - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD}
+      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME}
+      - MINIO_USE_SSL=${MINIO_USE_SSL}
     ports:
       - "5271:5271"
     depends_on:
       postgres:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     networks:
       - beatraction-network
@@ -66,6 +93,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  minio_data:
     driver: local
 
 networks:
