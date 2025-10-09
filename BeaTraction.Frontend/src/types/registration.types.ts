@@ -1,7 +1,7 @@
 export interface Registration {
   id: string;
   userId: string;
-  scheduleId: string;
+  scheduleAttractionId: string;
   registeredAt: string;
   rowVersion: number;
 }
@@ -12,22 +12,16 @@ export interface RegistrationWithDetails extends Registration {
     name: string;
     email: string;
   };
-  schedule?: {
+  scheduleAttraction?: {
     id: string;
-    name: string;
-    startTime: string;
-    endTime: string;
-    attraction?: {
-      id: string;
-      name: string;
-      capacity: number;
-    };
+    scheduleId: string;
+    attractionId: string;
   };
 }
 
 export interface CreateRegistrationRequest {
   userId: string;
-  scheduleId: string;
+  scheduleAttractionId: string;
 }
 
 export interface AttractionRegistrationStats {
@@ -35,7 +29,8 @@ export interface AttractionRegistrationStats {
   attractionName: string;
   capacity: number;
   totalRegistrations: number;
-  schedules: {
+  scheduleAttractions: {
+    scheduleAttractionId: string;
     scheduleId: string;
     scheduleName: string;
     startTime: string;
