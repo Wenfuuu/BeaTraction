@@ -28,19 +28,19 @@ public class CreateScheduleAttractionHandler : IRequestHandler<CreateScheduleAtt
         var schedule = await _scheduleRepository.GetByIdAsync(request.Data.ScheduleId, cancellationToken);
         if (schedule == null)
         {
-            throw new Exception($"Schedule with ID {request.Data.ScheduleId} not found");
+            throw new InvalidOperationException($"Schedule with ID {request.Data.ScheduleId} not found");
         }
 
         var attraction = await _attractionRepository.GetByIdAsync(request.Data.AttractionId, cancellationToken);
         if (attraction == null)
         {
-            throw new Exception($"Attraction with ID {request.Data.AttractionId} not found");
+            throw new InvalidOperationException($"Attraction with ID {request.Data.AttractionId} not found");
         }
 
         var exists = await _scheduleAttractionRepository.ExistsAsync(request.Data.ScheduleId, request.Data.AttractionId, cancellationToken);
         if (exists)
         {
-            throw new Exception($"Schedule-Attraction combination already exists");
+            throw new InvalidOperationException($"Schedule-Attraction combination already exists");
         }
 
         var scheduleAttraction = new ScheduleAttraction

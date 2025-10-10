@@ -17,9 +17,10 @@ public class DeleteScheduleAttractionHandler : IRequestHandler<DeleteScheduleAtt
         var scheduleAttraction = await _scheduleAttractionRepository.GetByIdAsync(request.Id, cancellationToken);
         if (scheduleAttraction == null)
         {
-            throw new Exception($"ScheduleAttraction with ID {request.Id} not found");
+            throw new InvalidOperationException("Schedule Attraction not found");
         }
 
-        return await _scheduleAttractionRepository.DeleteAsync(request.Id, cancellationToken);
+        await _scheduleAttractionRepository.DeleteAsync(scheduleAttraction, cancellationToken);
+        return true;
     }
 }

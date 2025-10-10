@@ -14,7 +14,7 @@ public class ScheduleAttractionRepository : IScheduleAttractionRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<ScheduleAttraction>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<List<ScheduleAttraction>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         return await _context.ScheduleAttractions
             .Include(sa => sa.Schedule)
@@ -30,7 +30,7 @@ public class ScheduleAttractionRepository : IScheduleAttractionRepository
             .FirstOrDefaultAsync(sa => sa.Id == id, cancellationToken);
     }
 
-    public async Task<IEnumerable<ScheduleAttraction>> GetByScheduleIdAsync(Guid scheduleId, CancellationToken cancellationToken = default)
+    public async Task<List<ScheduleAttraction>> GetByScheduleIdAsync(Guid scheduleId, CancellationToken cancellationToken = default)
     {
         return await _context.ScheduleAttractions
             .Include(sa => sa.Schedule)
@@ -39,7 +39,7 @@ public class ScheduleAttractionRepository : IScheduleAttractionRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<ScheduleAttraction>> GetByAttractionIdAsync(Guid attractionId, CancellationToken cancellationToken = default)
+    public async Task<List<ScheduleAttraction>> GetByAttractionIdAsync(Guid attractionId, CancellationToken cancellationToken = default)
     {
         return await _context.ScheduleAttractions
             .Include(sa => sa.Schedule)
@@ -63,24 +63,10 @@ public class ScheduleAttractionRepository : IScheduleAttractionRepository
         return scheduleAttraction;
     }
 
-    public async Task<ScheduleAttraction> UpdateAsync(ScheduleAttraction scheduleAttraction, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(ScheduleAttraction scheduleAttraction, CancellationToken cancellationToken = default)
     {
-        _context.ScheduleAttractions.Update(scheduleAttraction);
-        await _context.SaveChangesAsync(cancellationToken);
-        return scheduleAttraction;
-    }
-
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        var scheduleAttraction = await _context.ScheduleAttractions.FindAsync(new object[] { id }, cancellationToken);
-        if (scheduleAttraction == null)
-        {
-            return false;
-        }
-
         _context.ScheduleAttractions.Remove(scheduleAttraction);
         await _context.SaveChangesAsync(cancellationToken);
-        return true;
     }
 
     public async Task<bool> ExistsAsync(Guid scheduleId, Guid attractionId, CancellationToken cancellationToken = default)
