@@ -25,6 +25,7 @@ public class ScheduleRepository : IScheduleRepository
     {
         return await _context.Schedules
             .Include(s => s.ScheduleAttractions)
+            .OrderBy(s => s.StartTime)
             .ToListAsync(cancellationToken);
     }
 
