@@ -40,7 +40,18 @@ public class CreateScheduleAttractionHandler : IRequestHandler<CreateScheduleAtt
         var exists = await _scheduleAttractionRepository.ExistsAsync(request.Data.ScheduleId, request.Data.AttractionId, cancellationToken);
         if (exists)
         {
-            throw new InvalidOperationException($"Schedule-Attraction combination already exists");
+            throw new InvalidOperationException($"This attraction is already assigned to this schedule");
+        }
+
+        var hasConflict = await _scheduleAttractionRepository.HasScheduleConflictAsync(
+            request.Data.AttractionId, 
+            schedule.StartTime, 
+            schedule.EndTime, 
+            cancellationToken);
+        
+        if (hasConflict)
+        {
+            throw new InvalidOperationException($"The attraction '{attraction.Name}' is already scheduled during this time period. Please choose a different time slot.");
         }
 
         var scheduleAttraction = new ScheduleAttraction

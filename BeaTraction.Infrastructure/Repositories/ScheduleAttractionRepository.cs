@@ -74,4 +74,16 @@ public class ScheduleAttractionRepository : IScheduleAttractionRepository
         return await _context.ScheduleAttractions
             .AnyAsync(sa => sa.ScheduleId == scheduleId && sa.AttractionId == attractionId, cancellationToken);
     }
+
+    public async Task<bool> HasScheduleConflictAsync(Guid attractionId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
+    {
+        return await _context.ScheduleAttractions
+            .Include(sa => sa.Schedule)
+            .Where(sa => sa.AttractionId == attractionId)
+            .AnyAsync(sa => 
+                (startTime >= sa.Schedule.StartTime && startTime < sa.Schedule.EndTime) ||
+                (endTime > sa.Schedule.StartTime && endTime <= sa.Schedule.EndTime) ||
+                (startTime <= sa.Schedule.StartTime && endTime >= sa.Schedule.EndTime),
+                cancellationToken);
+    }
 }

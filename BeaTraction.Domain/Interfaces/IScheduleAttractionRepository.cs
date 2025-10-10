@@ -12,4 +12,5 @@ public interface IScheduleAttractionRepository
     Task<ScheduleAttraction> CreateAsync(ScheduleAttraction scheduleAttraction, CancellationToken cancellationToken = default);
     Task DeleteAsync(ScheduleAttraction scheduleAttraction, CancellationToken cancellationToken = default);
     Task<bool> ExistsAsync(Guid scheduleId, Guid attractionId, CancellationToken cancellationToken = default);
+    Task<bool> HasScheduleConflictAsync(Guid attractionId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
 }
