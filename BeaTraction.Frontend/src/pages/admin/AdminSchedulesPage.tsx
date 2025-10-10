@@ -36,21 +36,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Schedule, CreateScheduleRequest } from "@/types/schedule.types";
+import type { CreateScheduleRequest, ScheduleWithAttractions } from "@/types/schedule.types";
 import type { Attraction } from "@/types/attraction.types";
-import type { ScheduleAttractionWithDetails } from "@/types/schedule-attraction.types";
 import { Plus, Pencil, Trash2, Calendar, Clock, MapPin, X } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { scheduleService } from "@/services/scheduleService";
 import { attractionService } from "@/services/attractionService";
 import { scheduleAttractionService } from "@/services/scheduleAttractionService";
+import { scheduleManagementService } from "@/services/scheduleManagementService";
 
 export default function AdminSchedulesPage() {
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [schedulesWithAttractions, setSchedulesWithAttractions] = useState<ScheduleWithAttractions[]>([]);
   const [attractions, setAttractions] = useState<Attraction[]>([]);
-  const [scheduleAttractions, setScheduleAttractions] = useState<
-    ScheduleAttractionWithDetails[]
-  >([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -59,9 +56,7 @@ export default function AdminSchedulesPage() {
   const [isManageAttractionsDialogOpen, setIsManageAttractionsDialogOpen] =
     useState(false);
 
-  const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(
-    null
-  );
+  const [selectedSchedule, setSelectedSchedule] = useState<ScheduleWithAttractions | null>(null);
   const [scheduleToDelete, setScheduleToDelete] = useState<string | null>(null);
   const [selectedAttractionId, setSelectedAttractionId] = useState<string>("");
 
@@ -75,15 +70,12 @@ export default function AdminSchedulesPage() {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const [schedulesData, attractionsData, scheduleAttractionsData] =
-          await Promise.all([
-            scheduleService.getAll(),
-            attractionService.getAll(),
-            scheduleAttractionService.getAll(),
-          ]);
-        setSchedules(schedulesData);
+        const [schedulesData, attractionsData] = await Promise.all([
+          scheduleManagementService.getSchedulesWithAttractions(),
+          attractionService.getAll(),
+        ]);
+        setSchedulesWithAttractions(schedulesData);
         setAttractions(attractionsData);
-        setScheduleAttractions(scheduleAttractionsData);
       } catch (error) {
         toast.error("Failed to load data", {
           description:
@@ -99,12 +91,9 @@ export default function AdminSchedulesPage() {
   const fetchSchedules = async () => {
     try {
       setIsLoading(true);
-      const [schedulesData, scheduleAttractionsData] = await Promise.all([
-        scheduleService.getAll(),
-        scheduleAttractionService.getAll(),
-      ]);
-      setSchedules(schedulesData);
-      setScheduleAttractions(scheduleAttractionsData);
+      const schedulesData =
+        await scheduleManagementService.getSchedulesWithAttractions();
+      setSchedulesWithAttractions(schedulesData);
     } catch (error) {
       toast.error("Failed to load schedules", {
         description:
@@ -116,10 +105,13 @@ export default function AdminSchedulesPage() {
   };
 
   const getScheduleAttractions = (scheduleId: string) => {
-    return scheduleAttractions.filter((sa) => sa.scheduleId === scheduleId);
+    const schedule = schedulesWithAttractions.find(
+      (s) => s.scheduleId === scheduleId
+    );
+    return schedule?.attractions || [];
   };
 
-  const handleManageAttractions = (schedule: Schedule) => {
+  const handleManageAttractions = (schedule: ScheduleWithAttractions) => {
     setSelectedSchedule(schedule);
     setIsManageAttractionsDialogOpen(true);
   };
@@ -130,10 +122,11 @@ export default function AdminSchedulesPage() {
       return;
     }
 
-    const alreadyExists = scheduleAttractions.some(
-      (sa) =>
-        sa.scheduleId === selectedSchedule.id &&
-        sa.attractionId === selectedAttractionId
+    const currentAttractions = getScheduleAttractions(
+      selectedSchedule.scheduleId
+    );
+    const alreadyExists = currentAttractions.some(
+      (a) => a.attractionId === selectedAttractionId
     );
 
     if (alreadyExists) {
@@ -146,13 +139,19 @@ export default function AdminSchedulesPage() {
     try {
       setIsLoading(true);
       await scheduleAttractionService.create({
-        scheduleId: selectedSchedule.id,
+        scheduleId: selectedSchedule.scheduleId,
         attractionId: selectedAttractionId,
       });
 
-      const updatedScheduleAttractions =
-        await scheduleAttractionService.getAll();
-      setScheduleAttractions(updatedScheduleAttractions);
+      const updatedSchedules = await scheduleManagementService.getSchedulesWithAttractions();
+      setSchedulesWithAttractions(updatedSchedules);
+      
+      const updatedSelectedSchedule = updatedSchedules.find(
+        s => s.scheduleId === selectedSchedule.scheduleId
+      );
+      if (updatedSelectedSchedule) {
+        setSelectedSchedule(updatedSelectedSchedule);
+      }
 
       setSelectedAttractionId("");
       toast.success("Success!", {
@@ -168,14 +167,32 @@ export default function AdminSchedulesPage() {
     }
   };
 
-  const handleRemoveAttraction = async (scheduleAttractionId: string) => {
+  const handleRemoveAttraction = async (attractionId: string) => {
+    if (!selectedSchedule) return;
+
     try {
       setIsLoading(true);
-      await scheduleAttractionService.delete(scheduleAttractionId);
 
-      const updatedScheduleAttractions =
-        await scheduleAttractionService.getAll();
-      setScheduleAttractions(updatedScheduleAttractions);
+      const scheduleAttraction = await scheduleAttractionService.getAll();
+      const toDelete = scheduleAttraction.find(
+        (sa) =>
+          sa.scheduleId === selectedSchedule.scheduleId &&
+          sa.attractionId === attractionId
+      );
+
+      if (toDelete) {
+        await scheduleAttractionService.delete(toDelete.id);
+      }
+
+      const updatedSchedules = await scheduleManagementService.getSchedulesWithAttractions();
+      setSchedulesWithAttractions(updatedSchedules);
+      
+      const updatedSelectedSchedule = updatedSchedules.find(
+        s => s.scheduleId === selectedSchedule.scheduleId
+      );
+      if (updatedSelectedSchedule) {
+        setSelectedSchedule(updatedSelectedSchedule);
+      }
 
       toast.success("Success!", {
         description: "Attraction removed from schedule",
@@ -217,10 +234,10 @@ export default function AdminSchedulesPage() {
     }
   };
 
-  const handleEdit = (schedule: Schedule) => {
+  const handleEdit = (schedule: ScheduleWithAttractions) => {
     setSelectedSchedule(schedule);
     setFormData({
-      name: schedule.name,
+      name: schedule.scheduleName,
       startTime: schedule.startTime,
       endTime: schedule.endTime,
     });
@@ -232,9 +249,9 @@ export default function AdminSchedulesPage() {
 
     try {
       setIsLoading(true);
-      await scheduleService.update(selectedSchedule.id, {
+      await scheduleService.update(selectedSchedule.scheduleId, {
         ...formData,
-        id: selectedSchedule.id,
+        id: selectedSchedule.scheduleId,
         rowVersion: selectedSchedule.rowVersion,
       });
       toast.success("Success!", {
@@ -384,7 +401,7 @@ export default function AdminSchedulesPage() {
                 <p className="text-gray-500">Loading schedules...</p>
               </CardContent>
             </Card>
-          ) : schedules.length === 0 ? (
+          ) : schedulesWithAttractions.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
@@ -402,18 +419,20 @@ export default function AdminSchedulesPage() {
                   All Schedules
                 </CardTitle>
                 <CardDescription>
-                  {schedules.length} schedule(s) available
+                  {schedulesWithAttractions.length} schedule(s) available
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {schedules.map((schedule) => (
+                  {schedulesWithAttractions.map((schedule) => (
                     <div
-                      key={schedule.id}
+                      key={schedule.scheduleId}
                       className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
                     >
                       <div className="flex-1">
-                        <h4 className="font-semibold">{schedule.name}</h4>
+                        <h4 className="font-semibold">
+                          {schedule.scheduleName}
+                        </h4>
                         <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
                           <div className="flex items-center gap-1">
                             <Clock className="h-4 w-4" />
@@ -425,8 +444,7 @@ export default function AdminSchedulesPage() {
                         <div className="flex items-center gap-2 mt-2">
                           <MapPin className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-600">
-                            {getScheduleAttractions(schedule.id).length}{" "}
-                            attraction(s)
+                            {schedule.attractions.length} attraction(s)
                           </span>
                         </div>
                       </div>
@@ -449,7 +467,7 @@ export default function AdminSchedulesPage() {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleDeleteClick(schedule.id)}
+                          onClick={() => handleDeleteClick(schedule.scheduleId)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -563,7 +581,7 @@ export default function AdminSchedulesPage() {
             <DialogHeader>
               <DialogTitle>Manage Attractions</DialogTitle>
               <DialogDescription>
-                Add or remove attractions for "{selectedSchedule?.name}"
+                Add or remove attractions for "{selectedSchedule?.scheduleName}"
               </DialogDescription>
             </DialogHeader>
 
@@ -583,7 +601,7 @@ export default function AdminSchedulesPage() {
                         .filter(
                           (attr) =>
                             !getScheduleAttractions(
-                              selectedSchedule?.id || ""
+                              selectedSchedule?.scheduleId || ""
                             ).some((sa) => sa.attractionId === attr.id)
                         )
                         .map((attraction) => (
@@ -605,58 +623,58 @@ export default function AdminSchedulesPage() {
 
               <div className="space-y-4">
                 <h3 className="text-sm font-semibold">Current Attractions</h3>
-                {getScheduleAttractions(selectedSchedule?.id || "").length ===
-                0 ? (
+                {selectedSchedule &&
+                selectedSchedule.attractions.length === 0 ? (
                   <p className="text-sm text-gray-500 text-center py-8">
                     No attractions added yet
                   </p>
                 ) : (
                   <div className="space-y-2">
-                    {getScheduleAttractions(selectedSchedule?.id || "").map(
-                      (sa) => {
-                        const attraction = attractions.find(
-                          (a) => a.id === sa.attractionId
-                        );
-                        if (!attraction) return null;
+                    {selectedSchedule?.attractions.map((sa) => {
+                      const attraction = attractions.find(
+                        (a) => a.id === sa.attractionId
+                      );
+                      if (!attraction) return null;
 
-                        return (
-                          <div
-                            key={sa.id}
-                            className="flex items-center justify-between p-3 border rounded-lg"
-                          >
-                            <div className="flex items-center gap-3">
-                              {attraction.imageUrl ? (
-                                <img
-                                  src={attraction.imageUrl}
-                                  alt={attraction.name}
-                                  className="w-12 h-12 object-cover rounded"
-                                />
-                              ) : (
-                                <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
-                                  <MapPin className="h-6 w-6 text-gray-400" />
-                                </div>
-                              )}
-                              <div>
-                                <h4 className="font-semibold">
-                                  {attraction.name}
-                                </h4>
-                                <p className="text-sm text-gray-600">
-                                  Capacity: {attraction.capacity}
-                                </p>
+                      return (
+                        <div
+                          key={sa.attractionId}
+                          className="flex items-center justify-between p-3 border rounded-lg"
+                        >
+                          <div className="flex items-center gap-3">
+                            {attraction.imageUrl ? (
+                              <img
+                                src={attraction.imageUrl}
+                                alt={attraction.name}
+                                className="w-12 h-12 object-cover rounded"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                                <MapPin className="h-6 w-6 text-gray-400" />
                               </div>
+                            )}
+                            <div>
+                              <h4 className="font-semibold">
+                                {attraction.name}
+                              </h4>
+                              <p className="text-sm text-gray-600">
+                                Capacity: {attraction.capacity}
+                              </p>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleRemoveAttraction(sa.id)}
-                              disabled={isLoading}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
                           </div>
-                        );
-                      }
-                    )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              handleRemoveAttraction(sa.attractionId)
+                            }
+                            disabled={isLoading}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>

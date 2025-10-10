@@ -6,15 +6,22 @@ export interface Schedule {
   rowVersion: number;
 }
 
-export interface ScheduleWithAttractions extends Schedule {
-  attractions?: {
-    id: string;
-    scheduleAttractionId: string;
-    name: string;
-    description: string;
-    imageUrl?: string;
-    capacity: number;
-  }[];
+export interface AttractionInfo {
+  scheduleAttractionId: string;
+  attractionId: string;
+  attractionName: string;
+  description: string;
+  imageUrl?: string;
+  capacity: number;
+}
+
+export interface ScheduleWithAttractions {
+  scheduleId: string;
+  scheduleName: string;
+  startTime: string;
+  endTime: string;
+  rowVersion: number;
+  attractions: AttractionInfo[];
 }
 
 export interface CreateScheduleRequest {

@@ -42,5 +42,6 @@ export const API_ENDPOINTS = {
   dashboard: {
     attractionStats: `${API_BASE_URL}/Dashboard/attraction-stats`,
     userAttractions: (userId: string) => `${API_BASE_URL}/Dashboard/user-attractions/${userId}`,
+    schedulesWithAttractions: `${API_BASE_URL}/Dashboard/schedules-with-attractions`,
   },
 };

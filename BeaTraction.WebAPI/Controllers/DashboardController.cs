@@ -36,4 +36,14 @@ public class DashboardController : ControllerBase
         var response = await _mediator.Send(query);
         return Ok(response);
     }
+
+    [HttpGet("schedules-with-attractions")]
+    [ProducesResponseType(typeof(List<ScheduleWithAttractionsDto>), StatusCodes.Status200OK)]
+    [Authorize]
+    public async Task<ActionResult<List<ScheduleWithAttractionsDto>>> GetSchedulesWithAttractions()
+    {
+        var query = new GetSchedulesWithAttractionsQuery();
+        var response = await _mediator.Send(query);
+        return Ok(response);
+    }
 }
