@@ -39,4 +39,8 @@ export const API_ENDPOINTS = {
     create: `${API_BASE_URL}/Registrations`,
     delete: (id: string) => `${API_BASE_URL}/Registrations/${id}`,
   },
+  dashboard: {
+    attractionStats: `${API_BASE_URL}/Dashboard/attraction-stats`,
+    userAttractions: (userId: string) => `${API_BASE_URL}/Dashboard/user-attractions/${userId}`,
+  },
 };

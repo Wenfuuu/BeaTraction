@@ -19,6 +19,7 @@ public class ScheduleAttractionRepository : IScheduleAttractionRepository
         return await _context.ScheduleAttractions
             .Include(sa => sa.Schedule)
             .Include(sa => sa.Attraction)
+            .Include(sa => sa.Registrations)
             .ToListAsync(cancellationToken);
     }
 

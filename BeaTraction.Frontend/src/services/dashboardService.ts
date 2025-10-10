@@ -1,54 +1,16 @@
-import { attractionService } from "./attractionService";
-import { scheduleService } from "./scheduleService";
-import { scheduleAttractionService } from "./scheduleAttractionService";
-import { registrationService } from "./registrationService";
+import { API_ENDPOINTS } from "@/lib/api";
 import type { AttractionRegistrationStats } from "@/types/registration.types";
 
 export const dashboardService = {
   async getAttractionStats(): Promise<AttractionRegistrationStats[]> {
-    const [attractions, schedules, scheduleAttractions, registrations] = await Promise.all([
-      attractionService.getAll(),
-      scheduleService.getAll(),
-      scheduleAttractionService.getAll(),
-      registrationService.getAll(),
-    ]);
-
-    const stats: AttractionRegistrationStats[] = attractions.map((attraction) => {
-      const attractionSchedules = scheduleAttractions.filter(
-        (sa) => sa.attractionId === attraction.id
-      );
-
-      const scheduleAttractionStats = attractionSchedules.map((sa) => {
-        const schedule = schedules.find((s) => s.id === sa.scheduleId);
-        
-        const registrationCount = registrations.filter(
-          (r) => r.scheduleAttractionId === sa.id
-        ).length;
-
-        return {
-          scheduleAttractionId: sa.id,
-          scheduleId: sa.scheduleId,
-          scheduleName: schedule?.name || "Unknown Schedule",
-          startTime: schedule?.startTime || "",
-          endTime: schedule?.endTime || "",
-          registrationCount,
-        };
-      });
-
-      const totalRegistrations = scheduleAttractionStats.reduce(
-        (sum, s) => sum + s.registrationCount,
-        0
-      );
-
-      return {
-        attractionId: attraction.id,
-        attractionName: attraction.name,
-        capacity: attraction.capacity,
-        totalRegistrations,
-        scheduleAttractions: scheduleAttractionStats,
-      };
+    const response = await fetch(API_ENDPOINTS.dashboard.attractionStats, {
+      credentials: "include",
     });
 
-    return stats;
+    if (!response.ok) {
+      throw new Error("Failed to fetch attraction statistics");
+    }
+
+    return response.json();
   },
 };
