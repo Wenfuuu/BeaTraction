@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "E5wKHKGAmy4=",
+  "dgSpecHash": "f2SKzqj2G9s=",
   "success": true,
   "projectFilePath": "D:\\ASLAB\\TECH-TEST\\RDT\\BeaTraction\\BeaTraction.Domain\\BeaTraction.Domain.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\bertr\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512"
+  ],
   "logs": []
 }

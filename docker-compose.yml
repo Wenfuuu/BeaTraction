@@ -48,6 +48,8 @@ services:
       - 6379:6379
     volumes:
       - redis_data:/data
+    networks:
+      - beatraction-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -76,6 +78,8 @@ services:
       - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD}
       - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME}
       - MINIO_USE_SSL=${MINIO_USE_SSL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
     ports:
       - "5271:5271"
     depends_on:
@@ -96,6 +100,7 @@ services:
     container_name: beatraction-frontend
     environment:
       - VITE_API_URL=${VITE_API_URL}
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL}
     ports:
       - "5173:5173"
     volumes:

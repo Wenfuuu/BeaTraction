@@ -1,4 +1,5 @@
 using BeaTraction.Application.DTOs.Dashboard.Response;
+using BeaTraction.Application.Interfaces;
 using BeaTraction.Domain.Interfaces;
 using MediatR;
 
@@ -8,17 +9,31 @@ public class GetAttractionStatsHandler : IRequestHandler<GetAttractionStatsQuery
 {
     private readonly IAttractionRepository _attractionRepository;
     private readonly IScheduleAttractionRepository _scheduleAttractionRepository;
+    private readonly ICacheService _cacheService;
+    private const string CacheKey = "attraction-stats";
+    private static readonly TimeSpan CacheExpiration = TimeSpan.FromMinutes(5);
 
     public GetAttractionStatsHandler(
         IAttractionRepository attractionRepository,
-        IScheduleAttractionRepository scheduleAttractionRepository)
+        IScheduleAttractionRepository scheduleAttractionRepository,
+        ICacheService cacheService)
     {
         _attractionRepository = attractionRepository;
         _scheduleAttractionRepository = scheduleAttractionRepository;
+        _cacheService = cacheService;
     }
 
     public async Task<List<AttractionStatsDto>> Handle(GetAttractionStatsQuery request, CancellationToken cancellationToken)
     {
+        var cachedStats = await _cacheService.GetAsync<List<AttractionStatsDto>>(CacheKey);
+        if (cachedStats != null)
+        {
+            Console.WriteLine("Returning attraction stats from cache");
+            return cachedStats;
+        }
+
+        Console.WriteLine("Fetching attraction stats from database");
+
         var attractions = await _attractionRepository.GetAllAsync(cancellationToken);
         var scheduleAttractions = await _scheduleAttractionRepository.GetAllAsync(cancellationToken);
 
@@ -47,6 +62,8 @@ public class GetAttractionStatsHandler : IRequestHandler<GetAttractionStatsQuery
                 ScheduleAttractions = scheduleStats
             };
         }).ToList();
+
+        await _cacheService.SetAsync(CacheKey, stats, CacheExpiration);
 
         return stats;
     }

@@ -1,4 +1,5 @@
 using BeaTraction.Application.DTOs.Dashboard.Response;
+using BeaTraction.Application.Interfaces;
 using BeaTraction.Domain.Interfaces;
 using MediatR;
 
@@ -9,19 +10,34 @@ public class GetUserAttractionsHandler : IRequestHandler<GetUserAttractionsQuery
     private readonly IAttractionRepository _attractionRepository;
     private readonly IScheduleAttractionRepository _scheduleAttractionRepository;
     private readonly IRegistrationRepository _registrationRepository;
+    private readonly ICacheService _cacheService;
+    private static readonly TimeSpan CacheExpiration = TimeSpan.FromMinutes(5);
 
     public GetUserAttractionsHandler(
         IAttractionRepository attractionRepository,
         IScheduleAttractionRepository scheduleAttractionRepository,
-        IRegistrationRepository registrationRepository)
+        IRegistrationRepository registrationRepository,
+        ICacheService cacheService)
     {
         _attractionRepository = attractionRepository;
         _scheduleAttractionRepository = scheduleAttractionRepository;
         _registrationRepository = registrationRepository;
+        _cacheService = cacheService;
     }
 
     public async Task<List<UserAttractionDto>> Handle(GetUserAttractionsQuery request, CancellationToken cancellationToken)
     {
+        var cacheKey = $"user-attractions:{request.UserId}";
+
+        var cachedAttractions = await _cacheService.GetAsync<List<UserAttractionDto>>(cacheKey);
+        if (cachedAttractions != null)
+        {
+            Console.WriteLine($"Returning user attractions from cache for user: {request.UserId}");
+            return cachedAttractions;
+        }
+
+        Console.WriteLine($"Fetching user attractions from database for user: {request.UserId}");
+
         var attractions = await _attractionRepository.GetAllAsync(cancellationToken);
         var scheduleAttractions = await _scheduleAttractionRepository.GetAllAsync(cancellationToken);
 
@@ -63,6 +79,8 @@ public class GetUserAttractionsHandler : IRequestHandler<GetUserAttractionsQuery
             .Where(x => x.HasSchedules)
             .Select(x => x.Attraction)
             .ToList();
+
+        await _cacheService.SetAsync(cacheKey, userAttractions, CacheExpiration);
 
         return userAttractions;
     }

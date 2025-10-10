@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -9,30 +9,51 @@ import {
 import { Progress } from "@/components/ui/progress";
 import AdminLayout from "@/components/layouts/AdminLayout";
 import type { AttractionRegistrationStats } from "@/types/registration.types";
-import { Users, TrendingUp, Calendar, AlertCircle } from "lucide-react";
+import { Users, TrendingUp, Calendar, AlertCircle, Wifi, WifiOff } from "lucide-react";
 import { dashboardService } from "@/services/dashboardService";
 import { toast } from "@/lib/toast";
+import { useSignalR } from "@/hooks/useSignalR";
+import type { RegistrationCreatedEvent, RegistrationDeletedEvent } from "@/services/signalRService";
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AttractionRegistrationStats[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const loadStats = async () => {
-      try {
-        setIsLoading(true);
-        const data = await dashboardService.getAttractionStats();
-        setStats(data);
-      } catch (error) {
-        toast.error("Failed to load dashboard data", {
-          description: error instanceof Error ? error.message : "An error occurred",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadStats();
+  const loadStats = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await dashboardService.getAttractionStats();
+      setStats(data);
+    } catch (error) {
+      toast.error("Failed to load dashboard data", {
+        description: error instanceof Error ? error.message : "An error occurred",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  // SignalR real-time updates
+  const handleRegistrationCreated = useCallback((event: RegistrationCreatedEvent) => {
+    console.log("Admin: Registration created event:", event);
+    loadStats(); // Refresh stats
+  }, [loadStats]);
+
+  const handleRegistrationDeleted = useCallback((event: RegistrationDeletedEvent) => {
+    console.log("Admin: Registration deleted event:", event);
+    loadStats(); // Refresh stats
+  }, [loadStats]);
+
+  // Connect to SignalR and subscribe to events
+  const { isConnected } = useSignalR({
+    autoConnect: true,
+    onRegistrationCreated: handleRegistrationCreated,
+    onRegistrationDeleted: handleRegistrationDeleted,
+  });
+
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
 
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString("en-US", {
@@ -65,10 +86,29 @@ export default function AdminDashboardPage() {
     <AdminLayout>
       <div className="container mx-auto py-8 px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-gray-600 mt-2">
-            Real-time registration monitoring
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Dashboard</h1>
+              <p className="text-gray-600 mt-2">
+                Real-time registration monitoring
+              </p>
+            </div>
+            
+            {/* SignalR Connection Status */}
+            <div className="flex items-center gap-2 text-sm">
+              {isConnected ? (
+                <>
+                  <Wifi className="h-4 w-4 text-green-500" />
+                  <span className="text-green-600 font-medium">Live Updates Active</span>
+                </>
+              ) : (
+                <>
+                  <WifiOff className="h-4 w-4 text-gray-400" />
+                  <span className="text-gray-500">Offline Mode</span>
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
         {isLoading ? (

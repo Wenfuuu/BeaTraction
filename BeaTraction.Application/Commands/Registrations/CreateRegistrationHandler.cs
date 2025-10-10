@@ -1,5 +1,6 @@
 ﻿using BeaTraction.Application.DTOs.Registrations.Response;
 using BeaTraction.Domain.Entities;
+using BeaTraction.Domain.Events;
 using BeaTraction.Domain.Interfaces;
 using MediatR;
 
@@ -10,15 +11,18 @@ public class CreateRegistrationHandler : IRequestHandler<CreateRegistrationComma
     private readonly IRegistrationRepository _registrationRepository;
     private readonly IUserRepository _userRepository;
     private readonly IScheduleAttractionRepository _scheduleAttractionRepository;
+    private readonly IPublisher _publisher;
 
     public CreateRegistrationHandler(
         IRegistrationRepository registrationRepository,
         IUserRepository userRepository,
-        IScheduleAttractionRepository scheduleAttractionRepository)
+        IScheduleAttractionRepository scheduleAttractionRepository,
+        IPublisher publisher)
     {
         _registrationRepository = registrationRepository;
         _userRepository = userRepository;
         _scheduleAttractionRepository = scheduleAttractionRepository;
+        _publisher = publisher;
     }
 
     public async Task<RegistrationDto> Handle(CreateRegistrationCommand request, CancellationToken cancellationToken)
@@ -44,6 +48,14 @@ public class CreateRegistrationHandler : IRequestHandler<CreateRegistrationComma
         };
 
         await _registrationRepository.AddAsync(registration, cancellationToken);
+
+        var domainEvent = new RegistrationCreatedEvent(
+            registration.Id,
+            registration.UserId,
+            registration.ScheduleAttractionId,
+            registration.RegisteredAt);
+        
+        await _publisher.Publish(domainEvent, cancellationToken);
 
         return new RegistrationDto
         {

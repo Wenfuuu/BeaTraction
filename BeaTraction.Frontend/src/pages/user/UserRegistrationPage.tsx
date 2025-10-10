@@ -27,9 +27,13 @@ import {
   CheckCircle,
   Image as ImageIcon,
   AlertCircle,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { userRegistrationService, type AttractionWithSchedules, type ScheduleAttractionWithStats } from "@/services/userRegistrationService";
 import { registrationService } from "@/services/registrationService";
+import { useSignalR } from "@/hooks/useSignalR";
+import type { RegistrationCreatedEvent, RegistrationDeletedEvent } from "@/services/signalRService";
 
 export default function UserRegistrationPage() {
   const { user } = useAuthContext();
@@ -70,6 +74,52 @@ export default function UserRegistrationPage() {
     }
   }, [currentUserId, loadAttractions]);
 
+  // SignalR real-time updates
+  const handleRegistrationCreated = useCallback(
+    (event: RegistrationCreatedEvent) => {
+      console.log("Registration created event:", event);
+
+      // Reload attractions to get updated counts and registration status
+      loadAttractions();
+
+      // Show toast notification if it's not the current user's registration
+      if (event.userId !== currentUserId) {
+        toast.info("Someone registered!", {
+          description: `A spot was taken for ${
+            event.attractionName || "an attraction"
+          }`,
+        });
+      }
+    },
+    [currentUserId, loadAttractions]
+  );
+
+  const handleRegistrationDeleted = useCallback(
+    (event: RegistrationDeletedEvent) => {
+      console.log("Registration deleted event:", event);
+
+      // Reload attractions to get updated counts and registration status
+      loadAttractions();
+
+      // Show toast notification if it's not the current user's cancellation
+      if (event.userId !== currentUserId) {
+        toast.info("Spot available!", {
+          description: `A spot opened up for ${
+            event.attractionName || "an attraction"
+          }`,
+        });
+      }
+    },
+    [currentUserId, loadAttractions]
+  );
+
+  // Connect to SignalR and subscribe to events
+  const { isConnected } = useSignalR({
+    autoConnect: true,
+    onRegistrationCreated: handleRegistrationCreated,
+    onRegistrationDeleted: handleRegistrationDeleted,
+  });
+
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString("en-US", {
       dateStyle: "medium",
@@ -99,7 +149,8 @@ export default function UserRegistrationPage() {
       setIsRegistering(true);
       await registrationService.create({
         userId: currentUserId,
-        scheduleAttractionId: selectedSchedule.scheduleAttraction.scheduleAttractionId,
+        scheduleAttractionId:
+          selectedSchedule.scheduleAttraction.scheduleAttractionId,
         registeredAt: new Date().toISOString(),
       });
 
@@ -113,7 +164,8 @@ export default function UserRegistrationPage() {
     } catch (error) {
       console.error("Error registering:", error);
       toast.error("Failed to register", {
-        description: error instanceof Error ? error.message : "Please try again",
+        description:
+          error instanceof Error ? error.message : "Please try again",
       });
     } finally {
       setIsRegistering(false);
@@ -125,7 +177,9 @@ export default function UserRegistrationPage() {
     attractionName: string
   ) => {
     try {
-      const userRegistrations = await registrationService.getByUserId(currentUserId);
+      const userRegistrations = await registrationService.getByUserId(
+        currentUserId
+      );
       const registration = userRegistrations.find(
         (r) => r.scheduleAttractionId === scheduleAttractionId
       );
@@ -145,7 +199,8 @@ export default function UserRegistrationPage() {
     } catch (error) {
       console.error("Error cancelling registration:", error);
       toast.error("Failed to cancel registration", {
-        description: error instanceof Error ? error.message : "Please try again",
+        description:
+          error instanceof Error ? error.message : "Please try again",
       });
     }
   };
@@ -154,10 +209,31 @@ export default function UserRegistrationPage() {
     <UserLayout>
       <div className="container mx-auto py-8 px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">Available Attractions</h1>
-          <p className="text-gray-600 mt-2">
-            Browse and register for your favorite attractions
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Available Attractions</h1>
+              <p className="text-gray-600 mt-2">
+                Browse and register for your favorite attractions
+              </p>
+            </div>
+
+            {/* SignalR Connection Status */}
+            <div className="flex items-center gap-2 text-sm">
+              {isConnected ? (
+                <>
+                  <Wifi className="h-4 w-4 text-green-500" />
+                  <span className="text-green-600 font-medium">
+                    Live Updates Active
+                  </span>
+                </>
+              ) : (
+                <>
+                  <WifiOff className="h-4 w-4 text-gray-400" />
+                  <span className="text-gray-500">Offline Mode</span>
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
         {isLoading ? (

@@ -1,6 +1,7 @@
 using BeaTraction.Application;
 using BeaTraction.Application.Interfaces;
 using BeaTraction.Infrastructure;
+using BeaTraction.Infrastructure.Hubs;
 using BeaTraction.Infrastructure.Persistence;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -123,6 +124,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 // Ensure database is created and migrated
@@ -151,5 +154,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<AttractionsHub>("/hubs/attractions");
 
 app.Run();

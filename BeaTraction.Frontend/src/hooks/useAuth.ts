@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import type { User, LoginCredentials } from "@/types/auth.types";
 import { authService } from "@/services/authService";
+import { signalRService } from "@/services/signalRService";
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -29,6 +30,8 @@ export function useAuth() {
   };
 
   const logout = async () => {
+    // disconnect SignalR
+    await signalRService.stop();
     await authService.logout();
     setUser(null);
   };
