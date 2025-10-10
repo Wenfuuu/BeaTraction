@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -43,13 +43,7 @@ export default function UserRegistrationPage() {
   } | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
 
-  useEffect(() => {
-    if (currentUserId) {
-      loadAttractions();
-    }
-  }, [currentUserId]);
-
-  const loadAttractions = async () => {
+  const loadAttractions = useCallback(async () => {
     if (!currentUserId) {
       toast.error("Please log in to view attractions");
       setIsLoading(false);
@@ -58,7 +52,9 @@ export default function UserRegistrationPage() {
 
     try {
       setIsLoading(true);
-      const data = await userRegistrationService.getAttractionsWithSchedules(currentUserId);
+      const data = await userRegistrationService.getAttractionsWithSchedules(
+        currentUserId
+      );
       setAttractions(data);
     } catch (error) {
       console.error("Error loading attractions:", error);
@@ -66,7 +62,13 @@ export default function UserRegistrationPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentUserId]);
+
+  useEffect(() => {
+    if (currentUserId) {
+      loadAttractions();
+    }
+  }, [currentUserId, loadAttractions]);
 
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString("en-US", {
@@ -106,7 +108,7 @@ export default function UserRegistrationPage() {
       });
 
       setSelectedSchedule(null);
-      
+
       await loadAttractions();
     } catch (error) {
       console.error("Error registering:", error);
@@ -125,7 +127,7 @@ export default function UserRegistrationPage() {
     try {
       const userRegistrations = await registrationService.getByUserId(currentUserId);
       const registration = userRegistrations.find(
-        r => r.scheduleAttractionId === scheduleAttractionId
+        (r) => r.scheduleAttractionId === scheduleAttractionId
       );
 
       if (!registration) {
@@ -179,133 +181,150 @@ export default function UserRegistrationPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {attractions.map((attraction) => (
-            <Card key={attraction.id} className="overflow-hidden flex flex-col">
-              <div className="aspect-video bg-gray-100 relative">
-                {attraction.imageUrl ? (
-                  <img
-                    src={attraction.imageUrl}
-                    alt={attraction.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <ImageIcon className="h-16 w-16 text-gray-400" />
+            {attractions.map((attraction) => (
+              <Card
+                key={attraction.id}
+                className="overflow-hidden flex flex-col"
+              >
+                <div className="aspect-video bg-gray-100 relative">
+                  {attraction.imageUrl ? (
+                    <img
+                      src={attraction.imageUrl}
+                      alt={attraction.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ImageIcon className="h-16 w-16 text-gray-400" />
+                    </div>
+                  )}
+                </div>
+
+                <CardHeader>
+                  <CardTitle>{attraction.name}</CardTitle>
+                  <CardDescription className="line-clamp-3">
+                    {attraction.description}
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="flex-1">
+                  <div className="flex items-center gap-2 mb-4 text-sm text-gray-600">
+                    <Users className="h-4 w-4" />
+                    <span>Capacity: {attraction.capacity} people</span>
                   </div>
-                )}
-              </div>
 
-              <CardHeader>
-                <CardTitle>{attraction.name}</CardTitle>
-                <CardDescription className="line-clamp-3">
-                  {attraction.description}
-                </CardDescription>
-              </CardHeader>
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm">
+                      Available Schedules:
+                    </h4>
+                    {attraction.scheduleAttractions.map(
+                      (scheduleAttraction) => {
+                        const availableSpots = getAvailableSpots(
+                          attraction.capacity,
+                          scheduleAttraction.registrationCount
+                        );
+                        const utilization = getUtilizationPercentage(
+                          scheduleAttraction.registrationCount,
+                          attraction.capacity
+                        );
+                        const isFull = availableSpots <= 0;
 
-              <CardContent className="flex-1">
-                <div className="flex items-center gap-2 mb-4 text-sm text-gray-600">
-                  <Users className="h-4 w-4" />
-                  <span>Capacity: {attraction.capacity} people</span>
-                </div>
-
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-sm">
-                    Available Schedules:
-                  </h4>
-                  {attraction.scheduleAttractions.map((scheduleAttraction) => {
-                    const availableSpots = getAvailableSpots(
-                      attraction.capacity,
-                      scheduleAttraction.registrationCount
-                    );
-                    const utilization = getUtilizationPercentage(
-                      scheduleAttraction.registrationCount,
-                      attraction.capacity
-                    );
-                    const isFull = availableSpots <= 0;
-
-                    return (
-                      <div
-                        key={scheduleAttraction.scheduleAttractionId}
-                        className="border rounded-lg p-3 space-y-2"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h5 className="font-semibold text-sm">
-                              {scheduleAttraction.scheduleName}
-                            </h5>
-                            <div className="flex items-center gap-1 text-xs text-gray-600 mt-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>{formatDateTime(scheduleAttraction.startTime)}</span>
+                        return (
+                          <div
+                            key={scheduleAttraction.scheduleAttractionId}
+                            className="border rounded-lg p-3 space-y-2"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h5 className="font-semibold text-sm">
+                                  {scheduleAttraction.scheduleName}
+                                </h5>
+                                <div className="flex items-center gap-1 text-xs text-gray-600 mt-1">
+                                  <Calendar className="h-3 w-3" />
+                                  <span>
+                                    {formatDateTime(
+                                      scheduleAttraction.startTime
+                                    )}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1 text-xs text-gray-600">
+                                  <Clock className="h-3 w-3" />
+                                  <span>
+                                    {formatDateTime(scheduleAttraction.endTime)}
+                                  </span>
+                                </div>
+                              </div>
+                              {scheduleAttraction.isRegistered && (
+                                <Badge
+                                  variant="default"
+                                  className="bg-green-500"
+                                >
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  Registered
+                                </Badge>
+                              )}
                             </div>
-                            <div className="flex items-center gap-1 text-xs text-gray-600">
-                              <Clock className="h-3 w-3" />
-                              <span>{formatDateTime(scheduleAttraction.endTime)}</span>
+
+                            <div className="flex items-center justify-between text-xs">
+                              <span
+                                className={
+                                  isFull
+                                    ? "text-red-600 font-semibold"
+                                    : "text-gray-600"
+                                }
+                              >
+                                {isFull
+                                  ? "Fully Booked"
+                                  : `${availableSpots} spots left`}
+                              </span>
+                              <span
+                                className={
+                                  utilization >= 90
+                                    ? "text-red-600"
+                                    : "text-gray-600"
+                                }
+                              >
+                                {utilization}% full
+                              </span>
                             </div>
+
+                            {scheduleAttraction.isRegistered ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full"
+                                onClick={() =>
+                                  handleCancelRegistration(
+                                    scheduleAttraction.scheduleAttractionId,
+                                    attraction.name
+                                  )
+                                }
+                              >
+                                Cancel Registration
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                className="w-full"
+                                disabled={isFull}
+                                onClick={() =>
+                                  handleRegisterClick(
+                                    attraction,
+                                    scheduleAttraction
+                                  )
+                                }
+                              >
+                                {isFull ? "Fully Booked" : "Register Now"}
+                              </Button>
+                            )}
                           </div>
-                          {scheduleAttraction.isRegistered && (
-                            <Badge variant="default" className="bg-green-500">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Registered
-                            </Badge>
-                          )}
-                        </div>
-
-                        <div className="flex items-center justify-between text-xs">
-                          <span
-                            className={
-                              isFull
-                                ? "text-red-600 font-semibold"
-                                : "text-gray-600"
-                            }
-                          >
-                            {isFull
-                              ? "Fully Booked"
-                              : `${availableSpots} spots left`}
-                          </span>
-                          <span
-                            className={
-                              utilization >= 90
-                                ? "text-red-600"
-                                : "text-gray-600"
-                            }
-                          >
-                            {utilization}% full
-                          </span>
-                        </div>
-
-                        {scheduleAttraction.isRegistered ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
-                            onClick={() =>
-                              handleCancelRegistration(
-                                scheduleAttraction.scheduleAttractionId,
-                                attraction.name
-                              )
-                            }
-                          >
-                            Cancel Registration
-                          </Button>
-                        ) : (
-                          <Button
-                            size="sm"
-                            className="w-full"
-                            disabled={isFull}
-                            onClick={() =>
-                              handleRegisterClick(attraction, scheduleAttraction)
-                            }
-                          >
-                            {isFull ? "Fully Booked" : "Register Now"}
-                          </Button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                        );
+                      }
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
 
@@ -342,13 +361,17 @@ export default function UserRegistrationPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Start Time:</span>
                     <span className="font-semibold">
-                      {formatDateTime(selectedSchedule.scheduleAttraction.startTime)}
+                      {formatDateTime(
+                        selectedSchedule.scheduleAttraction.startTime
+                      )}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">End Time:</span>
                     <span className="font-semibold">
-                      {formatDateTime(selectedSchedule.scheduleAttraction.endTime)}
+                      {formatDateTime(
+                        selectedSchedule.scheduleAttraction.endTime
+                      )}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -374,7 +397,7 @@ export default function UserRegistrationPage() {
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={handleConfirmRegistration}
                 disabled={isRegistering}
               >

@@ -1,5 +1,6 @@
 import { API_ENDPOINTS } from "@/lib/api";
 import type { Attraction, CreateAttractionRequest, UpdateAttractionRequest } from "@/types/attraction.types";
+import { parseValidationError } from "@/lib/errorParser";
 
 export const attractionService = {
   async getAll(): Promise<Attraction[]> {
@@ -44,7 +45,7 @@ export const attractionService = {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: "Failed to create attraction" }));
-      throw new Error(error.message || "Failed to create attraction");
+      throw new Error(parseValidationError(error));
     }
 
     return response.json();
@@ -68,7 +69,7 @@ export const attractionService = {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: "Failed to update attraction" }));
-      throw new Error(error.message || "Failed to update attraction");
+      throw new Error(parseValidationError(error));
     }
 
     return response.json();
@@ -82,7 +83,7 @@ export const attractionService = {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: "Failed to delete attraction" }));
-      throw new Error(error.message || "Failed to delete attraction");
+      throw new Error(parseValidationError(error));
     }
   },
 };

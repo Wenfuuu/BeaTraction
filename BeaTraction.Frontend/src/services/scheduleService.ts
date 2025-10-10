@@ -1,5 +1,6 @@
 import { API_ENDPOINTS } from "@/lib/api";
 import type { Schedule, CreateScheduleRequest, UpdateScheduleRequest } from "@/types/schedule.types";
+import { parseValidationError } from "@/lib/errorParser";
 
 export const scheduleService = {
   async getAll(): Promise<Schedule[]> {
@@ -38,7 +39,7 @@ export const scheduleService = {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: "Failed to create schedule" }));
-      throw new Error(error.message || "Failed to create schedule");
+      throw new Error(parseValidationError(error));
     }
 
     return response.json();
@@ -56,7 +57,7 @@ export const scheduleService = {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: "Failed to update schedule" }));
-      throw new Error(error.message || "Failed to update schedule");
+      throw new Error(parseValidationError(error));
     }
 
     return response.json();
@@ -70,7 +71,7 @@ export const scheduleService = {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: "Failed to delete schedule" }));
-      throw new Error(error.message || "Failed to delete schedule");
+      throw new Error(parseValidationError(error));
     }
   },
 };

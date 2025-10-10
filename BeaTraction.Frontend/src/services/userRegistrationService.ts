@@ -62,7 +62,6 @@ export const userRegistrationService = {
         };
       });
 
-      // Filter out attractions with no schedules
       return attractionsWithSchedules
     } catch (error) {
       console.error("Error fetching attractions with schedules:", error);

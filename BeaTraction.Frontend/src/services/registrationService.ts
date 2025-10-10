@@ -1,5 +1,6 @@
 import { API_ENDPOINTS } from "@/lib/api";
 import type { Registration } from "@/types/registration.types";
+import { parseValidationError } from "@/lib/errorParser";
 
 export const registrationService = {
   async getAll(): Promise<Registration[]> {
@@ -38,7 +39,7 @@ export const registrationService = {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: "Failed to create registration" }));
-      throw new Error(error.message || "Failed to create registration");
+      throw new Error(parseValidationError(error));
     }
 
     return response.json();
@@ -52,7 +53,7 @@ export const registrationService = {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: "Failed to delete registration" }));
-      throw new Error(error.message || "Failed to delete registration");
+      throw new Error(parseValidationError(error));
     }
   },
 };

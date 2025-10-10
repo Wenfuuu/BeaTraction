@@ -4,6 +4,7 @@ import type {
   ScheduleAttractionWithDetails,
   CreateScheduleAttractionRequest,
 } from "@/types/schedule-attraction.types";
+import { parseValidationError } from "@/lib/errorParser";
 
 export const scheduleAttractionService = {
   async getAll(): Promise<ScheduleAttractionWithDetails[]> {
@@ -83,7 +84,7 @@ export const scheduleAttractionService = {
       const error = await response
         .json()
         .catch(() => ({ message: "Failed to add attraction to schedule" }));
-      throw new Error(error.message || "Failed to add attraction to schedule");
+      throw new Error(parseValidationError(error));
     }
 
     return response.json();
@@ -101,9 +102,7 @@ export const scheduleAttractionService = {
         .catch(() => ({
           message: "Failed to remove attraction from schedule",
         }));
-      throw new Error(
-        error.message || "Failed to remove attraction from schedule"
-      );
+      throw new Error(parseValidationError(error));
     }
   },
 };
