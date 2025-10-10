@@ -87,44 +87,6 @@ public class RegistrationsController : ControllerBase
         }
     }
 
-    [HttpPut("{id}")]
-    [ProducesResponseType(typeof(RegistrationDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [Authorize]
-    public async Task<ActionResult<RegistrationDto>> UpdateRegistration(Guid id, [FromBody] UpdateRegistrationDto dto)
-    {
-        try
-        {
-            var command = new UpdateRegistrationCommand(
-                id,
-                dto.UserId,
-                dto.ScheduleAttractionId,
-                dto.RegisteredAt
-            );
-
-            var validator = new UpdateRegistrationValidator();
-            var validationResult = await validator.ValidateAsync(command);
-
-            if (!validationResult.IsValid)
-            {
-                return BadRequest(new { errors = validationResult.Errors });
-            }
-
-            var response = await _mediator.Send(command);
-            return Ok(response);
-        }
-        catch (ValidationException ex)
-        {
-            var errors = ex.Errors.Select(e => new { e.PropertyName, e.ErrorMessage });
-            return BadRequest(new { errors });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-    }
-
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

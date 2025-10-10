@@ -271,7 +271,12 @@ export default function AdminDashboardPage() {
                             value={scheduleUtilization}
                             className="h-2"
                           />
-                          {scheduleUtilization >= 90 && (
+                          {scheduleUtilization === 100 ? (
+                            <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 p-2 rounded">
+                              <AlertCircle className="h-4 w-4" />
+                              <span>Fully booked! No spots left.</span>
+                            </div>
+                          ) : scheduleUtilization >= 90 ? (
                             <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 p-2 rounded">
                               <AlertCircle className="h-4 w-4" />
                               <span>
@@ -281,7 +286,7 @@ export default function AdminDashboardPage() {
                                 spots left
                               </span>
                             </div>
-                          )}
+                          ) : null}
                         </div>
                       );
                     })}
