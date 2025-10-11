@@ -8,4 +8,6 @@ public class ScheduleAttractionStatsDto
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public int RegistrationCount { get; set; }
+    public int AvailableSpots { get; set; }
+    public bool IsFull { get; set; }
 }

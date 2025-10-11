@@ -139,4 +139,55 @@ public class RedisCacheService : ICacheService
             Console.WriteLine($"Redis error on REMOVE_BY_PREFIX: {ex.Message}");
         }
     }
+    
+    public async Task<long> IncrementAsync(string key, long value = 1)
+    {
+        if (_db == null)
+        {
+            throw new InvalidOperationException("Redis is not available");
+        }
+        
+        return await _db.StringIncrementAsync(key, value);
+    }
+
+    public async Task<long> DecrementAsync(string key, long value = 1)
+    {
+        if (_db == null)
+        {
+            throw new InvalidOperationException("Redis is not available");
+        }
+        
+        return await _db.StringDecrementAsync(key, value);
+    }
+
+    public async Task<bool> SetIfNotExistsAsync(string key, string value, TimeSpan? expiration = null)
+    {
+        if (_db == null)
+        {
+            throw new InvalidOperationException("Redis is not available");
+        }
+        
+        return await _db.StringSetAsync(key, value, expiration, When.NotExists);
+    }
+
+    public async Task<string?> GetStringAsync(string key)
+    {
+        if (_db == null)
+        {
+            return null;
+        }
+        
+        var value = await _db.StringGetAsync(key);
+        return value.IsNullOrEmpty ? null : value.ToString();
+    }
+
+    public async Task SetStringAsync(string key, string value, TimeSpan? expiration = null)
+    {
+        if (_db == null)
+        {
+            throw new InvalidOperationException("Redis is not available");
+        }
+        
+        await _db.StringSetAsync(key, value, expiration);
+    }
 }

@@ -36,5 +36,7 @@ export interface AttractionRegistrationStats {
     startTime: string;
     endTime: string;
     registrationCount: number;
+    availableSpots: number;
+    isFull: boolean;
   }[];
 }

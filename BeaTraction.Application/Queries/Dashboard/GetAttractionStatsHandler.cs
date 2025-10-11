@@ -43,14 +43,38 @@ public class GetAttractionStatsHandler : IRequestHandler<GetAttractionStatsQuery
                 .Where(sa => sa.AttractionId == attraction.Id)
                 .ToList();
 
-            var scheduleStats = attractionSchedules.Select(sa => new ScheduleAttractionStatsDto
+            var scheduleStats = attractionSchedules.Select(sa =>
             {
-                ScheduleAttractionId = sa.Id,
-                ScheduleId = sa.ScheduleId,
-                ScheduleName = sa.Schedule?.Name ?? "Unknown Schedule",
-                StartTime = sa.Schedule?.StartTime ?? DateTime.MinValue,
-                EndTime = sa.Schedule?.EndTime ?? DateTime.MinValue,
-                RegistrationCount = sa.Registrations?.Count ?? 0
+                var dbRegistrationCount = sa.Registrations?.Count ?? 0;
+                
+                var capacityKey = CacheKeys.GetCapacity(sa.Id);
+                var redisCountStr = _cacheService.GetStringAsync(capacityKey).Result;
+                
+                int registrationCount;
+                if (!string.IsNullOrEmpty(redisCountStr) && int.TryParse(redisCountStr, out var redisCount))
+                {
+                    registrationCount = redisCount;
+                }
+                else
+                {
+                    registrationCount = dbRegistrationCount;
+                    _cacheService.SetStringAsync(capacityKey, registrationCount.ToString(), TimeSpan.FromHours(24));
+                }
+
+                var capacity = attraction.Capacity;
+                var availableSpots = Math.Max(0, capacity - registrationCount);
+
+                return new ScheduleAttractionStatsDto
+                {
+                    ScheduleAttractionId = sa.Id,
+                    ScheduleId = sa.ScheduleId,
+                    ScheduleName = sa.Schedule?.Name ?? "Unknown Schedule",
+                    StartTime = sa.Schedule?.StartTime ?? DateTime.MinValue,
+                    EndTime = sa.Schedule?.EndTime ?? DateTime.MinValue,
+                    RegistrationCount = registrationCount,
+                    AvailableSpots = availableSpots,
+                    IsFull = registrationCount >= capacity
+                };
             }).ToList();
 
             return new AttractionStatsDto

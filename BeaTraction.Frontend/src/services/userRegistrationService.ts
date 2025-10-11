@@ -15,6 +15,15 @@ export interface AttractionWithSchedules extends Attraction {
   scheduleAttractions: ScheduleAttractionWithStats[];
 }
 
+interface BackendAttractionResponse {
+  attractionId: string;
+  attractionName: string;
+  description: string;
+  imageUrl: string | null;
+  capacity: number;
+  scheduleAttractions: ScheduleAttractionWithStats[];
+}
+
 export const userRegistrationService = {
   async getAttractionsWithSchedules(userId: string): Promise<AttractionWithSchedules[]> {
     try {
@@ -26,7 +35,18 @@ export const userRegistrationService = {
         throw new Error("Failed to fetch attractions with schedules");
       }
 
-      return response.json();
+      const data: BackendAttractionResponse[] = await response.json();
+      
+      return data.map((item) => ({
+        id: item.attractionId,
+        name: item.attractionName,
+        description: item.description,
+        imageUrl: item.imageUrl,
+        capacity: item.capacity,
+        createdAt: new Date().toISOString(),
+        rowVersion: 0,
+        scheduleAttractions: item.scheduleAttractions,
+      }));
     } catch (error) {
       console.error("Error fetching attractions with schedules:", error);
       throw error;
