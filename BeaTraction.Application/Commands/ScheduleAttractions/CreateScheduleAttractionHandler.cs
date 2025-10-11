@@ -2,6 +2,7 @@ using BeaTraction.Application.DTOs.Attractions.Response;
 using BeaTraction.Application.DTOs.ScheduleAttractions.Response;
 using BeaTraction.Application.DTOs.Schedules.Response;
 using BeaTraction.Domain.Entities;
+using BeaTraction.Domain.Events;
 using BeaTraction.Domain.Interfaces;
 using MediatR;
 
@@ -12,15 +13,18 @@ public class CreateScheduleAttractionHandler : IRequestHandler<CreateScheduleAtt
     private readonly IScheduleAttractionRepository _scheduleAttractionRepository;
     private readonly IScheduleRepository _scheduleRepository;
     private readonly IAttractionRepository _attractionRepository;
+    private readonly IPublisher _publisher;
 
     public CreateScheduleAttractionHandler(
         IScheduleAttractionRepository scheduleAttractionRepository,
         IScheduleRepository scheduleRepository,
-        IAttractionRepository attractionRepository)
+        IAttractionRepository attractionRepository,
+        IPublisher publisher)
     {
         _scheduleAttractionRepository = scheduleAttractionRepository;
         _scheduleRepository = scheduleRepository;
         _attractionRepository = attractionRepository;
+        _publisher = publisher;
     }
 
     public async Task<ScheduleAttractionDto> Handle(CreateScheduleAttractionCommand request, CancellationToken cancellationToken)
@@ -63,6 +67,13 @@ public class CreateScheduleAttractionHandler : IRequestHandler<CreateScheduleAtt
 
         var created = await _scheduleAttractionRepository.CreateAsync(scheduleAttraction, cancellationToken);
         
+        var domainEvent = new ScheduleAttractionCreatedEvent(
+            created.Id,
+            created.ScheduleId,
+            created.AttractionId
+        );
+        await _publisher.Publish(domainEvent, cancellationToken);
+
         return new ScheduleAttractionDto
         {
             Id = created.Id,
