@@ -1,20 +1,20 @@
 using BeaTraction.Application.Common;
 using BeaTraction.Application.Interfaces;
-using BeaTraction.Domain.Events.ScheduleAttractions;
+using BeaTraction.Domain.Events.Attractions;
 using MediatR;
 
-namespace BeaTraction.Application.EventHandlers.ScheduleAttractions;
+namespace BeaTraction.Application.EventHandlers.Attractions;
 
-public class ScheduleAttractionCreatedEventHandler : INotificationHandler<ScheduleAttractionCreatedEvent>
+public class AttractionDeletedEventHandler : INotificationHandler<AttractionDeletedEvent>
 {
     private readonly ICacheService _cacheService;
 
-    public ScheduleAttractionCreatedEventHandler(ICacheService cacheService)
+    public AttractionDeletedEventHandler(ICacheService cacheService)
     {
         _cacheService = cacheService;
     }
 
-    public async Task Handle(ScheduleAttractionCreatedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(AttractionDeletedEvent notification, CancellationToken cancellationToken)
     {
         await _cacheService.RemoveByPrefixAsync(CacheKeys.AttractionStats);
         await _cacheService.RemoveByPrefixAsync(CacheKeys.UserAttractionsPrefix);

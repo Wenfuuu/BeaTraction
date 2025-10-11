@@ -1,4 +1,4 @@
-namespace BeaTraction.Domain.Events;
+namespace BeaTraction.Domain.Events.ScheduleAttractions;
 
 public class ScheduleAttractionCreatedEvent : IDomainEvent
 {

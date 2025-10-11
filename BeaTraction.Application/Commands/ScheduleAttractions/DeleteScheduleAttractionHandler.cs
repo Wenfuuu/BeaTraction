@@ -1,4 +1,4 @@
-using BeaTraction.Domain.Events;
+using BeaTraction.Domain.Events.ScheduleAttractions;
 using BeaTraction.Domain.Interfaces;
 using MediatR;
 

@@ -1,6 +1,6 @@
 using BeaTraction.Application.Common;
 using BeaTraction.Application.Interfaces;
-using BeaTraction.Domain.Events;
+using BeaTraction.Domain.Events.ScheduleAttractions;
 using MediatR;
 
 namespace BeaTraction.Application.EventHandlers.ScheduleAttractions;

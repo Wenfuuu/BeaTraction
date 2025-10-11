@@ -1,5 +1,6 @@
 using BeaTraction.Application.DTOs.Attractions.Response;
 using BeaTraction.Application.Interfaces;
+using BeaTraction.Domain.Events.Attractions;
 using BeaTraction.Domain.Interfaces;
 using MediatR;
 
@@ -9,11 +10,16 @@ public class UpdateAttractionHandler : IRequestHandler<UpdateAttractionCommand, 
 {
     private readonly IAttractionRepository _attractionRepository;
     private readonly IMinioService _minioService;
+    private readonly IPublisher _publisher;
 
-    public UpdateAttractionHandler(IAttractionRepository attractionRepository, IMinioService minioService)
+    public UpdateAttractionHandler(
+        IAttractionRepository attractionRepository, 
+        IMinioService minioService,
+        IPublisher publisher)
     {
         _attractionRepository = attractionRepository;
         _minioService = minioService;
+        _publisher = publisher;
     }
 
     public async Task<AttractionDto> Handle(UpdateAttractionCommand request, CancellationToken cancellationToken)
@@ -42,6 +48,13 @@ public class UpdateAttractionHandler : IRequestHandler<UpdateAttractionCommand, 
         attraction.Capacity = request.Capacity;
 
         await _attractionRepository.UpdateAsync(attraction, cancellationToken);
+
+        var domainEvent = new AttractionUpdatedEvent(
+            attraction.Id,
+            attraction.Name,
+            attraction.Capacity
+        );
+        await _publisher.Publish(domainEvent, cancellationToken);
 
         return new AttractionDto
         {

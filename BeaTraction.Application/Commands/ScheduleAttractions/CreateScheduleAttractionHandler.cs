@@ -2,7 +2,7 @@ using BeaTraction.Application.DTOs.Attractions.Response;
 using BeaTraction.Application.DTOs.ScheduleAttractions.Response;
 using BeaTraction.Application.DTOs.Schedules.Response;
 using BeaTraction.Domain.Entities;
-using BeaTraction.Domain.Events;
+using BeaTraction.Domain.Events.ScheduleAttractions;
 using BeaTraction.Domain.Interfaces;
 using MediatR;
 
