@@ -1,3 +1,4 @@
+using BeaTraction.Application.Common;
 using BeaTraction.Application.DTOs.Dashboard.Response;
 using BeaTraction.Application.Interfaces;
 using BeaTraction.Domain.Interfaces;
@@ -27,7 +28,7 @@ public class GetUserAttractionsHandler : IRequestHandler<GetUserAttractionsQuery
 
     public async Task<List<UserAttractionDto>> Handle(GetUserAttractionsQuery request, CancellationToken cancellationToken)
     {
-        var cacheKey = $"user-attractions:{request.UserId}";
+        var cacheKey = CacheKeys.GetUserAttractions(request.UserId);
 
         var cachedAttractions = await _cacheService.GetAsync<List<UserAttractionDto>>(cacheKey);
         if (cachedAttractions != null)

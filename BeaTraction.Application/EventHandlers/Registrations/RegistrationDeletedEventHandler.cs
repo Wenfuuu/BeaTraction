@@ -1,8 +1,9 @@
+using BeaTraction.Application.Common;
 using BeaTraction.Application.Interfaces;
 using BeaTraction.Domain.Events;
 using MediatR;
 
-namespace BeaTraction.Application.EventHandlers;
+namespace BeaTraction.Application.EventHandlers.Registrations;
 
 public class RegistrationDeletedEventHandler : INotificationHandler<RegistrationDeletedEvent>
 {
@@ -19,9 +20,9 @@ public class RegistrationDeletedEventHandler : INotificationHandler<Registration
 
     public async Task Handle(RegistrationDeletedEvent notification, CancellationToken cancellationToken)
     {
-        await _cacheService.RemoveByPrefixAsync("attraction-stats");
-        await _cacheService.RemoveByPrefixAsync($"user-attractions:{notification.UserId}");
-        await _cacheService.RemoveByPrefixAsync("schedules-with-attractions");
+        await _cacheService.RemoveByPrefixAsync(CacheKeys.AttractionStats);
+        await _cacheService.RemoveByPrefixAsync(CacheKeys.GetUserAttractions(notification.UserId));
+        await _cacheService.RemoveByPrefixAsync(CacheKeys.SchedulesWithAttractions);
 
         await _realtimeNotificationService.NotifyRegistrationDeletedAsync(
             notification.RegistrationId,
