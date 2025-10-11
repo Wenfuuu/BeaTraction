@@ -1,4 +1,4 @@
-namespace BeaTraction.Domain.Events;
+namespace BeaTraction.Domain.Events.Registrations;
 
 public class RegistrationDeletedEvent : IDomainEvent
 {

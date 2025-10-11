@@ -48,11 +48,11 @@ public class CreateScheduleAttractionHandler : IRequestHandler<CreateScheduleAtt
         }
 
         var hasConflict = await _scheduleAttractionRepository.HasScheduleConflictAsync(
-            request.Data.AttractionId, 
-            schedule.StartTime, 
-            schedule.EndTime, 
+            request.Data.AttractionId,
+            schedule.StartTime,
+            schedule.EndTime,
             cancellationToken);
-        
+
         if (hasConflict)
         {
             throw new InvalidOperationException($"The attraction '{attraction.Name}' is already scheduled during this time period. Please choose a different time slot.");
@@ -66,7 +66,7 @@ public class CreateScheduleAttractionHandler : IRequestHandler<CreateScheduleAtt
         };
 
         var created = await _scheduleAttractionRepository.CreateAsync(scheduleAttraction, cancellationToken);
-        
+
         var domainEvent = new ScheduleAttractionCreatedEvent(
             created.Id,
             created.ScheduleId,

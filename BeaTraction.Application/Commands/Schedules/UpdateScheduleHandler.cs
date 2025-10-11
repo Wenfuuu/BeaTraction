@@ -1,5 +1,5 @@
 using BeaTraction.Application.DTOs.Schedules.Response;
-using BeaTraction.Domain.Events;
+using BeaTraction.Domain.Events.Schedules;
 using BeaTraction.Domain.Interfaces;
 using MediatR;
 

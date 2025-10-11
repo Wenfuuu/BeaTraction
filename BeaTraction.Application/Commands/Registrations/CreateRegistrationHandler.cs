@@ -1,6 +1,6 @@
 ﻿using BeaTraction.Application.DTOs.Registrations.Response;
 using BeaTraction.Domain.Entities;
-using BeaTraction.Domain.Events;
+using BeaTraction.Domain.Events.Registrations;
 using BeaTraction.Domain.Interfaces;
 using MediatR;
 

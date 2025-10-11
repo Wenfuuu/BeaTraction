@@ -1,4 +1,4 @@
-namespace BeaTraction.Domain.Events;
+namespace BeaTraction.Domain.Events.Schedules;
 
 public class ScheduleDeletedEvent : IDomainEvent
 {

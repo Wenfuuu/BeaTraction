@@ -1,6 +1,6 @@
 using BeaTraction.Application.Common;
 using BeaTraction.Application.Interfaces;
-using BeaTraction.Domain.Events;
+using BeaTraction.Domain.Events.Registrations;
 using MediatR;
 
 namespace BeaTraction.Application.EventHandlers.Registrations;

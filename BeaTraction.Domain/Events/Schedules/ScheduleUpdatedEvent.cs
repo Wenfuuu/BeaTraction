@@ -1,6 +1,6 @@
-namespace BeaTraction.Domain.Events;
+namespace BeaTraction.Domain.Events.Schedules;
 
-public class ScheduleCreatedEvent : IDomainEvent
+public class ScheduleUpdatedEvent : IDomainEvent
 {
     public Guid ScheduleId { get; }
     public string Name { get; }
@@ -8,7 +8,7 @@ public class ScheduleCreatedEvent : IDomainEvent
     public DateTime EndTime { get; }
     public DateTime OccurredOn { get; }
 
-    public ScheduleCreatedEvent(
+    public ScheduleUpdatedEvent(
         Guid scheduleId,
         string name,
         DateTime startTime,
