@@ -33,10 +33,28 @@ public class CreateRegistrationHandler : IRequestHandler<CreateRegistrationComma
             throw new InvalidOperationException("User not found");
         }
 
-        var scheduleAttractionExists = await _scheduleAttractionRepository.GetByIdAsync(request.ScheduleAttractionId, cancellationToken);
-        if (scheduleAttractionExists == null)
+        var scheduleAttraction = await _scheduleAttractionRepository.GetByIdAsync(request.ScheduleAttractionId, cancellationToken);
+        if (scheduleAttraction == null)
         {
             throw new InvalidOperationException("ScheduleAttraction not found");
+        }
+
+        var currentRegistrationCount = scheduleAttraction.Registrations?.Count ?? 0;
+        var attractionCapacity = scheduleAttraction.Attraction?.Capacity ?? 0;
+
+        if (currentRegistrationCount >= attractionCapacity)
+        {
+            throw new InvalidOperationException(
+                $"Registration failed: This attraction has reached its maximum capacity of {attractionCapacity}. " +
+                $"Currently {currentRegistrationCount} registrations exist.");
+        }
+
+        var existingRegistration = scheduleAttraction.Registrations?
+            .FirstOrDefault(r => r.UserId == request.UserId);
+        
+        if (existingRegistration != null)
+        {
+            throw new InvalidOperationException("Registration failed: You have already registered for this schedule.");
         }
 
         var registration = new Registration
