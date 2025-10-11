@@ -21,7 +21,7 @@ public class RegistrationDeletedEventHandler : INotificationHandler<Registration
     public async Task Handle(RegistrationDeletedEvent notification, CancellationToken cancellationToken)
     {
         await _cacheService.RemoveByPrefixAsync(CacheKeys.AttractionStats);
-        await _cacheService.RemoveByPrefixAsync(CacheKeys.GetUserAttractions(notification.UserId));
+        await _cacheService.RemoveByPrefixAsync(CacheKeys.UserAttractionsPrefix);
         await _cacheService.RemoveByPrefixAsync(CacheKeys.SchedulesWithAttractions);
 
         await _realtimeNotificationService.NotifyRegistrationDeletedAsync(
@@ -29,7 +29,5 @@ public class RegistrationDeletedEventHandler : INotificationHandler<Registration
             notification.UserId,
             notification.ScheduleAttractionId,
             notification.OccurredOn);
-
-        Console.WriteLine($"Registration deleted event handled: {notification.RegistrationId}");
     }
 }

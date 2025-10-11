@@ -21,7 +21,7 @@ public class RegistrationCreatedEventHandler : INotificationHandler<Registration
     public async Task Handle(RegistrationCreatedEvent notification, CancellationToken cancellationToken)
     {
         await _cacheService.RemoveByPrefixAsync(CacheKeys.AttractionStats);
-        await _cacheService.RemoveByPrefixAsync(CacheKeys.GetUserAttractions(notification.UserId));
+        await _cacheService.RemoveByPrefixAsync(CacheKeys.UserAttractionsPrefix);
         await _cacheService.RemoveByPrefixAsync(CacheKeys.SchedulesWithAttractions);
 
         await _realtimeNotificationService.NotifyRegistrationCreatedAsync(
@@ -30,7 +30,5 @@ public class RegistrationCreatedEventHandler : INotificationHandler<Registration
             notification.ScheduleAttractionId,
             notification.RegisteredAt,
             notification.OccurredOn);
-
-        Console.WriteLine($"Registration created event handled: {notification.RegistrationId}");
     }
 }
