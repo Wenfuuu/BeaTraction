@@ -1,6 +1,7 @@
 using BeaTraction.Application.Common;
 using BeaTraction.Application.DTOs.Attractions.Response;
 using BeaTraction.Application.Interfaces;
+using BeaTraction.Domain.Entities;
 using BeaTraction.Domain.Events.Attractions;
 using BeaTraction.Domain.Interfaces;
 using MediatR;
@@ -39,6 +40,26 @@ public class UpdateAttractionHandler : IRequestHandler<UpdateAttractionCommand, 
 
         var oldCapacity = attraction.Capacity;
 
+        List<ScheduleAttraction>? affectedScheduleAttractions = null;
+        if (oldCapacity != request.Capacity)
+        {
+            var scheduleAttractions = await _scheduleAttractionRepository.GetAllAsync(cancellationToken);
+            affectedScheduleAttractions = scheduleAttractions
+                .Where(sa => sa.AttractionId == request.Id)
+                .ToList();
+
+            var maxRegistrations = affectedScheduleAttractions
+                .Max(sa => sa.Registrations?.Count ?? 0);
+
+            if (request.Capacity < maxRegistrations)
+            {
+                throw new InvalidOperationException(
+                    $"Cannot reduce capacity to {request.Capacity}. " +
+                    $"There are already {maxRegistrations} registrations for this attraction. " +
+                    $"Capacity must be at least {maxRegistrations}.");
+            }
+        }
+
         if (request.Image != null && request.Image.Length > 0)
         {
             if (!string.IsNullOrEmpty(attraction.ImageUrl))
@@ -59,13 +80,8 @@ public class UpdateAttractionHandler : IRequestHandler<UpdateAttractionCommand, 
         await _attractionRepository.UpdateAsync(attraction, cancellationToken);
 
         // reset redis counter if capacity changed
-        if (oldCapacity != request.Capacity)
+        if (oldCapacity != request.Capacity && affectedScheduleAttractions != null)
         {
-            var scheduleAttractions = await _scheduleAttractionRepository.GetAllAsync(cancellationToken);
-            var affectedScheduleAttractions = scheduleAttractions
-                .Where(sa => sa.AttractionId == request.Id)
-                .ToList();
-
             foreach (var sa in affectedScheduleAttractions)
             {
                 var capacityKey = CacheKeys.GetCapacity(sa.Id);
