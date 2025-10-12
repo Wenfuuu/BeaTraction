@@ -44,7 +44,6 @@ public static class DependencyInjection
                 Console.WriteLine($"Attempting to connect to Redis at {redisConnectionString}...");
                 var multiplexer = ConnectionMultiplexer.Connect(config);
                 
-                // Log connection events
                 multiplexer.ConnectionFailed += (sender, args) =>
                 {
                     Console.WriteLine($"Redis connection failed: {args.Exception?.Message ?? args.FailureType.ToString()}");

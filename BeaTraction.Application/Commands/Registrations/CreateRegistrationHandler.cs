@@ -60,6 +60,17 @@ public class CreateRegistrationHandler : IRequestHandler<CreateRegistrationComma
 
         var registrationKey = CacheKeys.GetRegistrationCount(request.ScheduleAttractionId);
         
+        var counterExists = await _cacheService.GetStringAsync(registrationKey);
+        if (string.IsNullOrEmpty(counterExists))
+        {
+            var actualCount = scheduleAttraction.Registrations?.Count ?? 0;
+            await _cacheService.SetStringAsync(
+                registrationKey, 
+                actualCount.ToString(), 
+                TimeSpan.FromHours(24)
+            );
+        }
+        
         var (success, currentCount) = await _cacheService.IncrementIfBelowAsync(
             registrationKey, 
             attractionCapacity, 

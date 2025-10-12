@@ -16,7 +16,6 @@ if (File.Exists(".env"))
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Debug: Print environment variables
 Console.WriteLine("=== Environment Variables ===");
 Console.WriteLine($"DB_HOST: {Environment.GetEnvironmentVariable("DB_HOST")}");
 Console.WriteLine($"DB_PORT: {Environment.GetEnvironmentVariable("DB_PORT")}");
@@ -134,7 +133,6 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     context.Database.EnsureCreated();
     
-    // Initialize MinIO bucket
     var minioService = scope.ServiceProvider.GetRequiredService<IMinioService>();
     await minioService.EnsureBucketExistsAsync();
     Console.WriteLine("MinIO bucket initialized successfully");

@@ -92,7 +92,7 @@ public class UpdateAttractionHandler : IRequestHandler<UpdateAttractionCommand, 
             {
                 var registrationKey = CacheKeys.GetRegistrationCount(sa.Id);
                 var actualCount = sa.Registrations?.Count ?? 0;
-                
+            
                 await _cacheService.SetStringAsync(registrationKey, actualCount.ToString(), TimeSpan.FromHours(24));
             }
         }
