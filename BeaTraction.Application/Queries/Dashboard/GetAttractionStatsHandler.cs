@@ -47,8 +47,8 @@ public class GetAttractionStatsHandler : IRequestHandler<GetAttractionStatsQuery
             {
                 var dbRegistrationCount = sa.Registrations?.Count ?? 0;
                 
-                var capacityKey = CacheKeys.GetCapacity(sa.Id);
-                var redisCountStr = _cacheService.GetStringAsync(capacityKey).Result;
+                var registrationKey = CacheKeys.GetRegistrationCount(sa.Id);
+                var redisCountStr = _cacheService.GetStringAsync(registrationKey).Result;
                 
                 int registrationCount;
                 if (!string.IsNullOrEmpty(redisCountStr) && int.TryParse(redisCountStr, out var redisCount))
@@ -58,7 +58,7 @@ public class GetAttractionStatsHandler : IRequestHandler<GetAttractionStatsQuery
                 else
                 {
                     registrationCount = dbRegistrationCount;
-                    _cacheService.SetStringAsync(capacityKey, registrationCount.ToString(), TimeSpan.FromHours(24));
+                    _cacheService.SetStringAsync(registrationKey, registrationCount.ToString(), TimeSpan.FromHours(24));
                 }
 
                 var capacity = attraction.Capacity;

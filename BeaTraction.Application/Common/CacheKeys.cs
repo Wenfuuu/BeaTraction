@@ -5,8 +5,7 @@ public static class CacheKeys
     public const string AttractionStats = "attraction-stats";
     public const string UserAttractionsPrefix = "user-attractions";
     public const string SchedulesWithAttractions = "schedules-with-attractions";
-    private const string CapacityPrefix = "capacity";
-    private const string RegistrationLockPrefix = "reg-lock";
+    private const string RegistrationCountPrefix = "capacity";
     
     public static string GetUserAttractions(Guid userId)
     {
@@ -18,13 +17,8 @@ public static class CacheKeys
         return $"{UserAttractionsPrefix}:{userId}";
     }
 
-    public static string GetCapacity(Guid scheduleAttractionId)
+    public static string GetRegistrationCount(Guid scheduleAttractionId)
     {
-        return $"{CapacityPrefix}:{scheduleAttractionId}";
-    }
-
-    public static string GetRegistrationLock(Guid scheduleAttractionId)
-    {
-        return $"{RegistrationLockPrefix}:{scheduleAttractionId}";
+        return $"{RegistrationCountPrefix}:{scheduleAttractionId}";
     }
 }

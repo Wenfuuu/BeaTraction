@@ -82,12 +82,18 @@ public class UpdateAttractionHandler : IRequestHandler<UpdateAttractionCommand, 
         // reset redis counter if capacity changed
         if (oldCapacity != request.Capacity && affectedScheduleAttractions != null)
         {
-            foreach (var sa in affectedScheduleAttractions)
+            // Re-fetch to get actual current counts
+            var updatedScheduleAttractions = await _scheduleAttractionRepository.GetAllAsync(cancellationToken);
+            var updatedAffected = updatedScheduleAttractions
+                .Where(sa => sa.AttractionId == request.Id)
+                .ToList();
+
+            foreach (var sa in updatedAffected)
             {
-                var capacityKey = CacheKeys.GetCapacity(sa.Id);
-                var currentCount = sa.Registrations?.Count ?? 0;
+                var registrationKey = CacheKeys.GetRegistrationCount(sa.Id);
+                var actualCount = sa.Registrations?.Count ?? 0;
                 
-                await _cacheService.SetStringAsync(capacityKey, currentCount.ToString(), TimeSpan.FromHours(24));
+                await _cacheService.SetStringAsync(registrationKey, actualCount.ToString(), TimeSpan.FromHours(24));
             }
         }
 

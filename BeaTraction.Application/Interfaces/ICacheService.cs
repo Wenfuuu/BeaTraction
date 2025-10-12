@@ -11,4 +11,5 @@ public interface ICacheService
     Task<bool> SetIfNotExistsAsync(string key, string value, TimeSpan? expiration = null);
     Task<string?> GetStringAsync(string key);
     Task SetStringAsync(string key, string value, TimeSpan? expiration = null);
+    Task<(bool success, long currentValue)> IncrementIfBelowAsync(string key, long maxValue, long incrementBy = 1);
 }

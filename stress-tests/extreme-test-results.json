@@ -9,17 +9,17 @@
   },
   "results": {
     "successCount": 1000,
-    "failureCount": 5001,
-    "capacityErrors": 5001,
-    "otherErrors": 0,
-    "totalRequests": 6001,
+    "failureCount": 4662,
+    "capacityErrors": 4653,
+    "otherErrors": 9,
+    "totalRequests": 5662,
     "overBooked": false
   },
   "performance": {
-    "avgResponseTime": "1244.58",
-    "p95ResponseTime": "9365.00",
+    "avgResponseTime": "3145.21",
+    "p95ResponseTime": "12346.65",
     "p99ResponseTime": "0.00"
   },
   "verdict": "PASSED - System stable",
-  "timestamp": "2025-10-12T06:47:04.725Z"
+  "timestamp": "2025-10-12T13:21:22.940Z"
 }

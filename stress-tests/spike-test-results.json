@@ -8,19 +8,19 @@
   },
   "results": {
     "successCount": 1000,
-    "failureCount": 6544,
-    "capacityErrors": 6544,
+    "failureCount": 6649,
+    "capacityErrors": 6649,
     "duplicateErrors": 0,
     "otherErrors": 0,
-    "totalRequests": 7544,
+    "totalRequests": 7649,
     "overBooked": false,
     "exactMatch": true
   },
   "performance": {
-    "avgResponseTime": "1043.38",
-    "p95ResponseTime": "8916.00",
+    "avgResponseTime": "6.61",
+    "p95ResponseTime": "21.00",
     "p99ResponseTime": "0.00"
   },
   "verdict": "PASSED - Perfect under spike",
-  "timestamp": "2025-10-12T07:40:51.425Z"
+  "timestamp": "2025-10-12T13:24:24.004Z"
 }

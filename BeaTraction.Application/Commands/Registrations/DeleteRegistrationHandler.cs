@@ -36,8 +36,8 @@ public class DeleteRegistrationHandler : IRequestHandler<DeleteRegistrationComma
 
         await _registrationRepository.DeleteAsync(registration, cancellationToken);
 
-        var capacityKey = CacheKeys.GetCapacity(scheduleAttractionId);
-        await _cacheService.DecrementAsync(capacityKey);
+        var registrationKey = CacheKeys.GetRegistrationCount(scheduleAttractionId);
+        await _cacheService.DecrementAsync(registrationKey);
 
         var domainEvent = new RegistrationDeletedEvent(
             registrationId,

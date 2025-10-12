@@ -190,4 +190,44 @@ public class RedisCacheService : ICacheService
         
         await _db.StringSetAsync(key, value, expiration);
     }
+
+    public async Task<(bool success, long currentValue)> IncrementIfBelowAsync(string key, long maxValue, long incrementBy = 1)
+    {
+        if (_db == null)
+        {
+            throw new InvalidOperationException("Redis is not available");
+        }
+
+        // Lua script for atomic increment-if-below operation
+        const string luaScript = @"
+            local current = redis.call('GET', KEYS[1])
+            if current == false then
+                current = 0
+            else
+                current = tonumber(current)
+            end
+            
+            local max = tonumber(ARGV[1])
+            local increment = tonumber(ARGV[2])
+            
+            if current + increment <= max then
+                local new = redis.call('INCRBY', KEYS[1], increment)
+                return {1, new}
+            else
+                return {0, current}
+            end
+        ";
+
+        var result = await _db.ScriptEvaluateAsync(
+            luaScript,
+            new RedisKey[] { key },
+            new RedisValue[] { maxValue, incrementBy }
+        );
+
+        var resultArray = (RedisValue[])result!;
+        var success = (long)resultArray[0] == 1;
+        var currentValue = (long)resultArray[1];
+
+        return (success, currentValue);
+    }
 }

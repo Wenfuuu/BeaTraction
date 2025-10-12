@@ -58,108 +58,55 @@ public class CreateRegistrationHandler : IRequestHandler<CreateRegistrationComma
             throw new InvalidOperationException("Registration failed: You have already registered for this schedule.");
         }
 
-        // redis optimistic locking with infinite retry until capacity is full
-        var capacityKey = CacheKeys.GetCapacity(request.ScheduleAttractionId);
-        var lockKey = CacheKeys.GetRegistrationLock(request.ScheduleAttractionId);
+        var registrationKey = CacheKeys.GetRegistrationCount(request.ScheduleAttractionId);
         
-        // Keep trying until we succeed or capacity is full (no arbitrary retry limit)
-        while (true)
+        var (success, currentCount) = await _cacheService.IncrementIfBelowAsync(
+            registrationKey, 
+            attractionCapacity, 
+            1
+        );
+
+        if (!success)
         {
-            // Check capacity BEFORE trying to acquire lock to fail fast when full
-            var currentCountStr = await _cacheService.GetStringAsync(capacityKey);
-            if (!string.IsNullOrEmpty(currentCountStr))
+            throw new InvalidOperationException(
+                $"Registration failed: This attraction has reached its maximum capacity of {attractionCapacity}. " +
+                $"Currently {currentCount} registrations exist.");
+        }
+
+        // We got the slot! Now save to database
+        try
+        {
+            var registration = new Registration
             {
-                var currentCount = long.Parse(currentCountStr);
-                if (currentCount >= attractionCapacity)
-                {
-                    throw new InvalidOperationException(
-                        $"Registration failed: This attraction has reached its maximum capacity of {attractionCapacity}. " +
-                        $"Currently {currentCount} registrations exist.");
-                }
-            }
+                Id = Guid.NewGuid(),
+                UserId = request.UserId,
+                ScheduleAttractionId = request.ScheduleAttractionId,
+                RegisteredAt = request.RegisteredAt
+            };
+
+            await _registrationRepository.AddAsync(registration, cancellationToken);
+
+            var domainEvent = new RegistrationCreatedEvent(
+                registration.Id,
+                registration.UserId,
+                registration.ScheduleAttractionId,
+                registration.RegisteredAt);
             
-            try
+            await _publisher.Publish(domainEvent, cancellationToken);
+
+            return new RegistrationDto
             {
-                // try to acquire lock (200ms expiration - very short for fast operations)
-                var lockAcquired = await _cacheService.SetIfNotExistsAsync(
-                    lockKey, 
-                    request.UserId.ToString(), 
-                    TimeSpan.FromMilliseconds(200)
-                );
-
-                if (!lockAcquired)
-                {
-                    // lock is held by another request, wait with minimal jittered delay
-                    await Task.Delay(10 + Random.Shared.Next(0, 40), cancellationToken);
-                    continue;
-                }
-
-                try
-                {
-                    currentCountStr = await _cacheService.GetStringAsync(capacityKey);
-                    long currentCount;
-
-                    if (string.IsNullOrEmpty(currentCountStr))
-                    {
-                        currentCount = scheduleAttraction.Registrations?.Count ?? 0;
-                        await _cacheService.SetStringAsync(capacityKey, currentCount.ToString(), TimeSpan.FromHours(24));
-                    }
-                    else
-                    {
-                        currentCount = long.Parse(currentCountStr);
-                    }
-
-                    if (currentCount >= attractionCapacity)
-                    {
-                        throw new InvalidOperationException(
-                            $"Registration failed: This attraction has reached its maximum capacity of {attractionCapacity}. " +
-                            $"Currently {currentCount} registrations exist.");
-                    }
-
-                    var registration = new Registration
-                    {
-                        Id = Guid.NewGuid(),
-                        UserId = request.UserId,
-                        ScheduleAttractionId = request.ScheduleAttractionId,
-                        RegisteredAt = request.RegisteredAt
-                    };
-
-                    await _registrationRepository.AddAsync(registration, cancellationToken);
-
-                    // increment capacity counter in redis
-                    await _cacheService.IncrementAsync(capacityKey);
-
-                    var domainEvent = new RegistrationCreatedEvent(
-                        registration.Id,
-                        registration.UserId,
-                        registration.ScheduleAttractionId,
-                        registration.RegisteredAt);
-                    
-                    await _publisher.Publish(domainEvent, cancellationToken);
-
-                    return new RegistrationDto
-                    {
-                        Id = registration.Id,
-                        UserId = registration.UserId,
-                        ScheduleAttractionId = registration.ScheduleAttractionId,
-                        RegisteredAt = registration.RegisteredAt
-                    };
-                }
-                finally
-                {
-                    await _cacheService.RemoveAsync(lockKey);
-                }
-            }
-            catch (InvalidOperationException)
-            {
-                // Re-throw business logic errors (capacity full, duplicate registration)
-                throw;
-            }
-            catch (Exception)
-            {
-                // For any other errors, wait a bit and retry
-                await Task.Delay(10 + Random.Shared.Next(0, 40), cancellationToken);
-            }
+                Id = registration.Id,
+                UserId = registration.UserId,
+                ScheduleAttractionId = registration.ScheduleAttractionId,
+                RegisteredAt = registration.RegisteredAt
+            };
+        }
+        catch (Exception)
+        {
+            // If DB save fails, decrement the counter back
+            await _cacheService.DecrementAsync(registrationKey, 1);
+            throw;
         }
     }
 }
