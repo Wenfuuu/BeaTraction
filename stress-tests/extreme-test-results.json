@@ -1,0 +1,25 @@
+{
+  "testType": "EXTREME_STRESS_TEST",
+  "testConfig": {
+    "baseUrl": "http://localhost:5271",
+    "scheduleAttractionId": "b8e74dad-3714-4ee2-9c64-dc4ceef9f4c4",
+    "expectedCapacity": 1000,
+    "rate": "200 req/s",
+    "duration": "30s"
+  },
+  "results": {
+    "successCount": 1000,
+    "failureCount": 5000,
+    "capacityErrors": 5000,
+    "otherErrors": 0,
+    "totalRequests": 6000,
+    "overBooked": false
+  },
+  "performance": {
+    "avgResponseTime": "597.41",
+    "p95ResponseTime": "4950.00",
+    "p99ResponseTime": "0.00"
+  },
+  "verdict": "PASSED - System stable",
+  "timestamp": "2025-10-12T05:21:25.223Z"
+}

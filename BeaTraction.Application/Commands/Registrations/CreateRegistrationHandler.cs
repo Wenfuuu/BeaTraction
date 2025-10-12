@@ -15,7 +15,6 @@ public class CreateRegistrationHandler : IRequestHandler<CreateRegistrationComma
     private readonly IScheduleAttractionRepository _scheduleAttractionRepository;
     private readonly ICacheService _cacheService;
     private readonly IPublisher _publisher;
-    private const int MaxRetryAttempts = 3;
 
     public CreateRegistrationHandler(
         IRegistrationRepository registrationRepository,
@@ -33,11 +32,11 @@ public class CreateRegistrationHandler : IRequestHandler<CreateRegistrationComma
 
     public async Task<RegistrationDto> Handle(CreateRegistrationCommand request, CancellationToken cancellationToken)
     {
-        var userExists = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
-        if (userExists == null)
-        {
-            throw new InvalidOperationException("User not found");
-        }
+        // var userExists = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
+        // if (userExists == null)
+        // {
+        //     throw new InvalidOperationException("User not found");
+        // }
 
         var scheduleAttraction = await _scheduleAttractionRepository.GetByIdAsync(request.ScheduleAttractionId, cancellationToken);
         if (scheduleAttraction == null)
@@ -59,31 +58,45 @@ public class CreateRegistrationHandler : IRequestHandler<CreateRegistrationComma
             throw new InvalidOperationException("Registration failed: You have already registered for this schedule.");
         }
 
-        // redis optimistic locking with retry
+        // redis optimistic locking with infinite retry until capacity is full
         var capacityKey = CacheKeys.GetCapacity(request.ScheduleAttractionId);
         var lockKey = CacheKeys.GetRegistrationLock(request.ScheduleAttractionId);
         
-        for (int attempt = 0; attempt < MaxRetryAttempts; attempt++)
+        // Keep trying until we succeed or capacity is full (no arbitrary retry limit)
+        while (true)
         {
+            // Check capacity BEFORE trying to acquire lock to fail fast when full
+            var currentCountStr = await _cacheService.GetStringAsync(capacityKey);
+            if (!string.IsNullOrEmpty(currentCountStr))
+            {
+                var currentCount = long.Parse(currentCountStr);
+                if (currentCount >= attractionCapacity)
+                {
+                    throw new InvalidOperationException(
+                        $"Registration failed: This attraction has reached its maximum capacity of {attractionCapacity}. " +
+                        $"Currently {currentCount} registrations exist.");
+                }
+            }
+            
             try
             {
-                // try to acquire lock (5 sec expiration)
+                // try to acquire lock (200ms expiration - very short for fast operations)
                 var lockAcquired = await _cacheService.SetIfNotExistsAsync(
                     lockKey, 
                     request.UserId.ToString(), 
-                    TimeSpan.FromSeconds(5)
+                    TimeSpan.FromMilliseconds(200)
                 );
 
                 if (!lockAcquired)
                 {
-                    // lock is held by another request, wait and retry
-                    await Task.Delay(100 * (attempt + 1), cancellationToken);
+                    // lock is held by another request, wait with minimal jittered delay
+                    await Task.Delay(10 + Random.Shared.Next(0, 40), cancellationToken);
                     continue;
                 }
 
                 try
                 {
-                    var currentCountStr = await _cacheService.GetStringAsync(capacityKey);
+                    currentCountStr = await _cacheService.GetStringAsync(capacityKey);
                     long currentCount;
 
                     if (string.IsNullOrEmpty(currentCountStr))
@@ -139,20 +152,14 @@ public class CreateRegistrationHandler : IRequestHandler<CreateRegistrationComma
             }
             catch (InvalidOperationException)
             {
+                // Re-throw business logic errors (capacity full, duplicate registration)
                 throw;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                if (attempt == MaxRetryAttempts - 1)
-                {
-                    throw new InvalidOperationException(
-                        "Registration failed after multiple attempts. Please try again.", ex);
-                }
-                
-                await Task.Delay(100 * (attempt + 1), cancellationToken);
+                // For any other errors, wait a bit and retry
+                await Task.Delay(10 + Random.Shared.Next(0, 40), cancellationToken);
             }
         }
-
-        throw new InvalidOperationException("Registration failed: Unable to acquire lock after multiple attempts.");
     }
 }

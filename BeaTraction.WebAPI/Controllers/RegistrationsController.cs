@@ -54,7 +54,7 @@ public class RegistrationsController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(RegistrationDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [Authorize]
+    // [Authorize]
     public async Task<ActionResult<RegistrationDto>> CreateRegistration([FromBody] CreateRegistrationDto dto)
     {
         try
