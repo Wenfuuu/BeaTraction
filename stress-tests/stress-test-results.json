@@ -8,19 +8,19 @@
   },
   "results": {
     "successCount": 1000,
-    "failureCount": 2001,
-    "capacityErrors": 2001,
+    "failureCount": 2000,
+    "capacityErrors": 2000,
     "duplicateErrors": 0,
     "otherErrors": 0,
-    "totalRequests": 3001,
+    "totalRequests": 3000,
     "overBooked": false,
     "exactMatch": true
   },
   "performance": {
-    "avgResponseTime": "139.70",
-    "p95ResponseTime": "948.00",
+    "avgResponseTime": "22.91",
+    "p95ResponseTime": "86.00",
     "p99ResponseTime": "0.00"
   },
   "verdict": "PASSED - Perfect capacity enforcement",
-  "timestamp": "2025-10-12T04:12:12.178Z"
+  "timestamp": "2025-10-12T07:14:16.273Z"
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -19,6 +19,9 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AttractionRegistrationStats[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const reloadTimerRef = useRef<number | null>(null);
+  const RELOAD_DEBOUNCE_MS = 2000;
+
   const loadStats = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -33,16 +36,73 @@ export default function AdminDashboardPage() {
     }
   }, []);
 
+  const updateStatsOptimistically = useCallback(
+    (scheduleAttractionId: string, isRegistered: boolean) => {
+      setStats((prev) =>
+        prev.map((attraction) => {
+          const hasSchedule = attraction.scheduleAttractions.some(
+            (sa) => sa.scheduleAttractionId === scheduleAttractionId
+          );
+
+          if (!hasSchedule) {
+            return attraction;
+          }
+
+          return {
+            ...attraction,
+            totalRegistrations: isRegistered
+              ? attraction.totalRegistrations + 1
+              : attraction.totalRegistrations - 1,
+            scheduleAttractions: attraction.scheduleAttractions.map((sa) => {
+              if (sa.scheduleAttractionId === scheduleAttractionId) {
+                return {
+                  ...sa,
+                  registrationCount: isRegistered
+                    ? sa.registrationCount + 1
+                    : sa.registrationCount - 1,
+                };
+              }
+              return sa;
+            }),
+          };
+        })
+      );
+    },
+    []
+  );
+
+  const scheduleReload = useCallback(() => {
+    if (reloadTimerRef.current !== null) {
+      clearTimeout(reloadTimerRef.current);
+    }
+
+    reloadTimerRef.current = window.setTimeout(() => {
+      loadStats();
+    }, RELOAD_DEBOUNCE_MS);
+  }, [loadStats]);
+
   // SignalR real-time updates
   const handleRegistrationCreated = useCallback((event: RegistrationCreatedEvent) => {
     console.log("Admin: Registration created event:", event);
-    loadStats(); // Refresh stats
-  }, [loadStats]);
+    updateStatsOptimistically(event.scheduleAttractionId, true);
+    
+    scheduleReload();
+  }, [updateStatsOptimistically, scheduleReload]);
 
   const handleRegistrationDeleted = useCallback((event: RegistrationDeletedEvent) => {
     console.log("Admin: Registration deleted event:", event);
-    loadStats(); // Refresh stats
-  }, [loadStats]);
+    updateStatsOptimistically(event.scheduleAttractionId, false);
+    
+    scheduleReload();
+  }, [updateStatsOptimistically, scheduleReload]);
+
+  useEffect(() => {
+    return () => {
+      if (reloadTimerRef.current !== null) {
+        clearTimeout(reloadTimerRef.current);
+      }
+    };
+  }, []);
 
   // Connect to SignalR and subscribe to events
   const { isConnected } = useSignalR({

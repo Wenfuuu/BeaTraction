@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -47,6 +47,9 @@ export default function UserRegistrationPage() {
   } | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
 
+  const reloadTimerRef = useRef<number | null>(null);
+  const RELOAD_DEBOUNCE_MS = 2000;
+
   const loadAttractions = useCallback(async () => {
     if (!currentUserId) {
       toast.error("Please log in to view attractions");
@@ -74,44 +77,75 @@ export default function UserRegistrationPage() {
     }
   }, [currentUserId, loadAttractions]);
 
+  const updateAttractionOptimistically = useCallback(
+    (scheduleAttractionId: string, userId: string, isRegistered: boolean) => {
+      setAttractions((prev) =>
+        prev.map((attraction) => ({
+          ...attraction,
+          scheduleAttractions: attraction.scheduleAttractions.map((sa) => {
+            if (sa.scheduleAttractionId === scheduleAttractionId) {
+              return {
+                ...sa,
+                registrationCount: isRegistered
+                  ? sa.registrationCount + 1
+                  : sa.registrationCount - 1,
+                isRegistered: userId === currentUserId ? isRegistered : sa.isRegistered,
+              };
+            }
+            return sa;
+          }),
+        }))
+      );
+    },
+    [currentUserId]
+  );
+
+  const scheduleReload = useCallback(() => {
+    if (reloadTimerRef.current) {
+      clearTimeout(reloadTimerRef.current);
+    }
+
+    reloadTimerRef.current = setTimeout(() => {
+      loadAttractions();
+    }, RELOAD_DEBOUNCE_MS);
+  }, [loadAttractions]);
+
   // SignalR real-time updates
   const handleRegistrationCreated = useCallback(
     (event: RegistrationCreatedEvent) => {
       console.log("Registration created event:", event);
+      updateAttractionOptimistically(
+        event.scheduleAttractionId,
+        event.userId,
+        true
+      );
 
-      // Reload attractions to get updated counts and registration status
-      loadAttractions();
-
-      // Show toast notification if it's not the current user's registration
-      if (event.userId !== currentUserId) {
-        toast.info("Someone registered!", {
-          description: `A spot was taken for ${
-            event.attractionName || "an attraction"
-          }`,
-        });
-      }
+      scheduleReload();
     },
-    [currentUserId, loadAttractions]
+    [updateAttractionOptimistically, scheduleReload]
   );
 
   const handleRegistrationDeleted = useCallback(
     (event: RegistrationDeletedEvent) => {
       console.log("Registration deleted event:", event);
+      updateAttractionOptimistically(
+        event.scheduleAttractionId,
+        event.userId,
+        false
+      );
 
-      // Reload attractions to get updated counts and registration status
-      loadAttractions();
-
-      // Show toast notification if it's not the current user's cancellation
-      if (event.userId !== currentUserId) {
-        toast.info("Spot available!", {
-          description: `A spot opened up for ${
-            event.attractionName || "an attraction"
-          }`,
-        });
-      }
+      scheduleReload();
     },
-    [currentUserId, loadAttractions]
+    [updateAttractionOptimistically, scheduleReload]
   );
+
+  useEffect(() => {
+    return () => {
+      if (reloadTimerRef.current) {
+        clearTimeout(reloadTimerRef.current);
+      }
+    };
+  }, []);
 
   // Connect to SignalR and subscribe to events
   const { isConnected } = useSignalR({
