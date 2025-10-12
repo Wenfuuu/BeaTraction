@@ -48,8 +48,9 @@ public class UpdateAttractionHandler : IRequestHandler<UpdateAttractionCommand, 
                 .Where(sa => sa.AttractionId == request.Id)
                 .ToList();
 
-            var maxRegistrations = affectedScheduleAttractions
-                .Max(sa => sa.Registrations?.Count ?? 0);
+            var maxRegistrations = affectedScheduleAttractions.Any()
+            ? affectedScheduleAttractions.Max(sa => sa.Registrations?.Count ?? 0)
+            : 0;
 
             if (request.Capacity < maxRegistrations)
             {
