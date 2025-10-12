@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router";
 import "./App.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { GuestRoute } from "@/components/GuestRoute";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
@@ -13,9 +14,23 @@ function App() {
   return (
     <>
       <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        {/* Public Routes - Guest Only */}
+        <Route
+          path="/"
+          element={
+            <GuestRoute>
+              <LoginPage />
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <GuestRoute>
+              <RegisterPage />
+            </GuestRoute>
+          }
+        />
 
         {/* Admin Routes - Protected */}
         <Route
