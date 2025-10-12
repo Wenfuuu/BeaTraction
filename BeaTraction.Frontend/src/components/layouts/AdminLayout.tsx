@@ -11,7 +11,7 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate();
-  const { logout } = useAuthContext();
+  const { user, logout } = useAuthContext();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -60,6 +60,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </div>
 
             <div className="hidden md:flex items-center gap-2">
+              <div className="px-4 py-2 text-sm text-gray-600">
+                  Welcome, {user?.name || "Guest"}
+                </div>
               <Button
                 variant="outline"
                 onClick={handleLogout}

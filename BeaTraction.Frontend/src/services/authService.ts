@@ -55,13 +55,16 @@ export const authService = {
       throw new Error(error.message || "Registration failed");
     }
 
-    const data = await response.json();
+    const user = await response.json();
 
-    if (data.user) {
-      localStorage.setItem("user", JSON.stringify(data.user));
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
     }
 
-    return data;
+    return {
+      user,
+      token: "",
+    };
   },
 
   async logout() {
