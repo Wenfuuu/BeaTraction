@@ -123,6 +123,7 @@ export default function AdminDashboardPage() {
   };
 
   const getUtilizationPercentage = (registered: number, capacity: number) => {
+    if (capacity === 0) return 0;
     return Math.round((registered / capacity) * 100);
   };
 
@@ -132,7 +133,10 @@ export default function AdminDashboardPage() {
     return "text-green-600";
   };
 
-  const totalCapacity = stats.reduce((sum, stat) => sum + stat.capacity, 0);
+  const totalCapacity = stats.reduce(
+    (sum, stat) => sum + (stat.capacity * stat.scheduleAttractions.length), 
+    0
+  );
   const totalRegistrations = stats.reduce(
     (sum, stat) => sum + stat.totalRegistrations,
     0
@@ -257,9 +261,10 @@ export default function AdminDashboardPage() {
           <h2 className="text-2xl font-bold">Attraction Statistics</h2>
 
           {stats.map((attraction) => {
+            const attractionTotalCapacity = attraction.capacity * attraction.scheduleAttractions.length;
             const utilization = getUtilizationPercentage(
               attraction.totalRegistrations,
-              attraction.capacity
+              attractionTotalCapacity
             );
 
             return (
@@ -274,7 +279,7 @@ export default function AdminDashboardPage() {
                     </div>
                     <div className="text-right">
                       <div className="text-2xl font-bold">
-                        {attraction.totalRegistrations} / {attraction.capacity}
+                        {attraction.totalRegistrations} / {attractionTotalCapacity}
                       </div>
                       <div
                         className={`text-sm font-semibold ${getUtilizationColor(

@@ -2,7 +2,7 @@
   "testType": "SPIKE_TEST",
   "testConfig": {
     "baseUrl": "http://localhost:5271",
-    "scheduleAttractionId": "b8e74dad-3714-4ee2-9c64-dc4ceef9f4c4",
+    "scheduleAttractionId": "01f62f02-e28d-468f-bed8-f64e1bdcaba1",
     "expectedCapacity": 1000,
     "pattern": "10→500→10 req/s"
   },
@@ -17,10 +17,10 @@
     "exactMatch": true
   },
   "performance": {
-    "avgResponseTime": "6.61",
-    "p95ResponseTime": "21.00",
+    "avgResponseTime": "9.09",
+    "p95ResponseTime": "33.00",
     "p99ResponseTime": "0.00"
   },
   "verdict": "PASSED - Perfect under spike",
-  "timestamp": "2025-10-12T13:24:24.004Z"
+  "timestamp": "2025-10-13T00:41:29.211Z"
 }

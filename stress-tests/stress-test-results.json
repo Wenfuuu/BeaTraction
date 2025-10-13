@@ -1,7 +1,7 @@
 {
   "testConfig": {
     "baseUrl": "http://localhost:5271",
-    "scheduleAttractionId": "b8e74dad-3714-4ee2-9c64-dc4ceef9f4c4",
+    "scheduleAttractionId": "01f62f02-e28d-468f-bed8-f64e1bdcaba1",
     "expectedCapacity": 1000,
     "duration": "30s",
     "targetRate": 100
@@ -17,10 +17,10 @@
     "exactMatch": true
   },
   "performance": {
-    "avgResponseTime": "6.58",
-    "p95ResponseTime": "15.00",
+    "avgResponseTime": "5.40",
+    "p95ResponseTime": "9.00",
     "p99ResponseTime": "0.00"
   },
   "verdict": "PASSED - Perfect capacity enforcement",
-  "timestamp": "2025-10-12T13:26:10.110Z"
+  "timestamp": "2025-10-13T00:49:32.025Z"
 }
