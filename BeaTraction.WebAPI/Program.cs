@@ -1,5 +1,6 @@
 using BeaTraction.Application;
 using BeaTraction.Application.Interfaces;
+using BeaTraction.Application.Telemetry;
 using BeaTraction.Infrastructure;
 using BeaTraction.Infrastructure.Hubs;
 using BeaTraction.Infrastructure.Persistence;
@@ -7,6 +8,10 @@ using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using System.Text;
 
 if (File.Exists(".env"))
@@ -29,6 +34,32 @@ builder.Services.AddApplication();
 
 // Add Infrastructure layer (DbContext, Repositories, Services)
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// OpenTelemetry — traces, metrics, logs via OTLP
+var otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT")
+    ?? "http://localhost:4317";
+
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r => r.AddService(AppTelemetry.ServiceName))
+    .WithTracing(t => t
+        .AddSource(AppTelemetry.ServiceName)
+        .AddAspNetCoreInstrumentation(o => o.RecordException = true)
+        .AddHttpClientInstrumentation()
+        .AddEntityFrameworkCoreInstrumentation()
+        .AddRedisInstrumentation()  // resolves IConnectionMultiplexer from DI
+        .AddOtlpExporter(o => o.Endpoint = new Uri(otlpEndpoint)))
+    .WithMetrics(m => m
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddRuntimeInstrumentation()
+        .AddOtlpExporter(o => o.Endpoint = new Uri(otlpEndpoint)));
+
+builder.Logging.AddOpenTelemetry(log =>
+{
+    log.IncludeFormattedMessage = true;
+    log.IncludeScopes = true;
+    log.AddOtlpExporter(o => o.Endpoint = new Uri(otlpEndpoint));
+});
 
 // Add JWT Authentication
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") 
