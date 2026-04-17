@@ -5,6 +5,7 @@
 
 # dotenv files
 .env
+BeaTraction.Frontend/.env.production
 
 # User-specific files
 *.rsuser
