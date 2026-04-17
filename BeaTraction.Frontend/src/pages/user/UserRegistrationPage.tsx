@@ -105,7 +105,7 @@ export default function UserRegistrationPage() {
       clearTimeout(reloadTimerRef.current);
     }
 
-    reloadTimerRef.current = setTimeout(() => {
+    reloadTimerRef.current = window.setTimeout(() => {
       loadAttractions();
     }, RELOAD_DEBOUNCE_MS);
   }, [loadAttractions]);

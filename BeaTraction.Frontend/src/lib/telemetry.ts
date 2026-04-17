@@ -4,7 +4,7 @@ import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import { FetchInstrumentation } from "@opentelemetry/instrumentation-fetch";
 import { DocumentLoadInstrumentation } from "@opentelemetry/instrumentation-document-load";
-import { Resource } from "@opentelemetry/resources";
+import { resourceFromAttributes } from "@opentelemetry/resources";
 
 const otlpEndpoint =
   (import.meta.env.VITE_OTEL_EXPORTER_OTLP_ENDPOINT as string) ??
@@ -12,7 +12,7 @@ const otlpEndpoint =
 
 export function initTelemetry() {
   const provider = new WebTracerProvider({
-    resource: new Resource({ "service.name": "beatraction-frontend" }),
+    resource: resourceFromAttributes({ "service.name": "beatraction-frontend" }),
     spanProcessors: [
       new BatchSpanProcessor(
         new OTLPTraceExporter({ url: `${otlpEndpoint}/v1/traces` })
