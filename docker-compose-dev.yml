@@ -59,10 +59,10 @@ services:
   backend:
     build:
       context: .
-      dockerfile: BeaTraction.WebAPI/Dockerfile
+      dockerfile: BeaTraction.WebAPI/Dockerfile.dev
     container_name: beatraction-backend
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Development
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
       - POSTGRES_DB=${POSTGRES_DB}
@@ -81,7 +81,7 @@ services:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
       - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
-      - CORS_ALLOWED_ORIGIN=${CORS_ALLOWED_ORIGIN}
+      - CORS_ALLOWED_ORIGIN=${CORS_ALLOWED_ORIGIN:-http://localhost:5173}
     ports:
       - "5271:5271"
     depends_on:
@@ -98,14 +98,17 @@ services:
   frontend:
     build:
       context: ./BeaTraction.Frontend
-      dockerfile: Dockerfile
-      args:
-        VITE_API_URL: ${VITE_API_URL}
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
-        VITE_OTEL_EXPORTER_OTLP_ENDPOINT: ${VITE_OTEL_EXPORTER_OTLP_ENDPOINT}
+      dockerfile: Dockerfile.dev
     container_name: beatraction-frontend
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+      - VITE_OTEL_EXPORTER_OTLP_ENDPOINT=${VITE_OTEL_EXPORTER_OTLP_ENDPOINT}
     ports:
-      - "80:80"
+      - "5173:5173"
+    volumes:
+      - ./BeaTraction.Frontend:/app
+      - /app/node_modules
     depends_on:
       - backend
     networks:

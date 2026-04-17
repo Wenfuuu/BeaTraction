@@ -143,11 +143,13 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+var corsOrigin = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGIN") ?? "http://localhost:5173";
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(corsOrigin)
             .AllowCredentials()
             .AllowAnyHeader()
             .AllowAnyMethod();
